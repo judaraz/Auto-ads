@@ -1,0 +1,154 @@
+<!doctype html>
+<html lang="bn">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Auto GigaPub Ads</title>
+
+  <!-- GigaPub Script -->
+  <script src="https://ad.gigapub.tech/script?id=974"></script>
+
+  <style>
+    body {
+      background-color: #0e0e0e;
+      font-family: Arial, sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+      color: white;
+    }
+    .card {
+      background-color: #1a1a1a;
+      border-radius: 16px;
+      padding: 20px;
+      width: 300px;
+      text-align: center;
+      box-shadow: 0 0 15px rgba(255, 215, 0, 0.2);
+    }
+    h2 {
+      font-size: 20px;
+      font-weight: bold;
+      color: gold;
+      margin-bottom: 4px;
+    }
+    .subtitle {
+      font-size: 14px;
+      color: #aaa;
+      margin-bottom: 16px;
+    }
+    .stats {
+      font-size: 14px;
+      margin-bottom: 10px;
+    }
+    .progress-ring {
+      width: 140px;
+      height: 140px;
+      border-radius: 50%;
+      background: conic-gradient(gold 0%, #333 0%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 15px auto;
+    }
+    .progress-text {
+      background-color: #1a1a1a;
+      width: 100px;
+      height: 100px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+      font-weight: bold;
+      color: gold;
+    }
+    button {
+      width: 100%;
+      padding: 10px;
+      margin-top: 8px;
+      border: none;
+      border-radius: 8px;
+      font-weight: bold;
+      font-size: 15px;
+      cursor: pointer;
+    }
+    .btn-gold {
+      background: linear-gradient(to right, #ffd700, #ffb700);
+      color: black;
+    }
+    .btn-dark {
+      background: #333;
+      color: gold;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h2>Auto GigaPub Ads</h2>
+    <div class="subtitle">Crypto Earning Lab</div>
+
+    <div class="stats">
+      Watched Ads: <span id="watchedCount">0</span><br>
+      Earned Points: <span id="earnedPoints">0</span>
+    </div>
+
+    <div class="progress-ring" id="progressRing">
+      <div class="progress-text" id="progressText">0%</div>
+    </div>
+
+    <button class="btn-gold" id="watchBtn">Watch Ad</button>
+    <button class="btn-gold" id="autoOnBtn">Auto Show Ads</button>
+    <button class="btn-gold" id="autoOffBtn">Stop Auto Ads</button>
+  </div>
+
+  <script>
+    let watched = 0;
+    let points = 0;
+    let autoInterval = null;
+
+    function updateUI() {
+      document.getElementById('watchedCount').textContent = watched;
+      document.getElementById('earnedPoints').textContent = points;
+      let percent = Math.min(100, (points % 100));
+      document.getElementById('progressText').textContent = percent + "%";
+      document.getElementById('progressRing').style.background =
+        `conic-gradient(gold ${percent}%, #333 ${percent}%)`;
+    }
+
+    function playAd() {
+      if (typeof window.showGiga === "function") {
+        window.showGiga()
+          .then(() => {
+            watched++;
+            points += 5; // প্রতিটি অ্যাডে 5 পয়েন্ট
+            updateUI();
+          })
+          .catch(e => {
+            console.error("Ad error:", e);
+          });
+      } else {
+        alert("GigaPub script not loaded yet!");
+      }
+    }
+
+    function startAutoShow() {
+      if (autoInterval) return;
+      playAd();
+      autoInterval = setInterval(playAd, 20000); // প্রতি 20 সেকেন্ডে অ্যাড
+    }
+
+    function stopAutoShow() {
+      clearInterval(autoInterval);
+      autoInterval = null;
+    }
+
+    document.getElementById('watchBtn').onclick = playAd;
+    document.getElementById('autoOnBtn').onclick = startAutoShow;
+    document.getElementById('autoOffBtn').onclick = stopAutoShow;
+
+    updateUI();
+  </script>
+</body>
+</html>
