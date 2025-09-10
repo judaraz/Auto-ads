@@ -1,154 +1,115 @@
-<!doctype html>
-<html lang="bn">
+<!DOCTYPE html>
+<html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Auto GigaPub Ads</title>
-
-  <!-- GigaPub Script -->
-  <script src="https://ad.gigapub.tech/script?id=974"></script>
-
-  <style>
-    body {
-      background-color: #0e0e0e;
-      font-family: Arial, sans-serif;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-      margin: 0;
-      color: white;
-    }
-    .card {
-      background-color: #1a1a1a;
-      border-radius: 16px;
-      padding: 20px;
-      width: 300px;
-      text-align: center;
-      box-shadow: 0 0 15px rgba(255, 215, 0, 0.2);
-    }
-    h2 {
-      font-size: 20px;
-      font-weight: bold;
-      color: gold;
-      margin-bottom: 4px;
-    }
-    .subtitle {
-      font-size: 14px;
-      color: #aaa;
-      margin-bottom: 16px;
-    }
-    .stats {
-      font-size: 14px;
-      margin-bottom: 10px;
-    }
-    .progress-ring {
-      width: 140px;
-      height: 140px;
-      border-radius: 50%;
-      background: conic-gradient(gold 0%, #333 0%);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      margin: 0 auto 15px auto;
-    }
-    .progress-text {
-      background-color: #1a1a1a;
-      width: 100px;
-      height: 100px;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 22px;
-      font-weight: bold;
-      color: gold;
-    }
-    button {
-      width: 100%;
-      padding: 10px;
-      margin-top: 8px;
-      border: none;
-      border-radius: 8px;
-      font-weight: bold;
-      font-size: 15px;
-      cursor: pointer;
-    }
-    .btn-gold {
-      background: linear-gradient(to right, #ffd700, #ffb700);
-      color: black;
-    }
-    .btn-dark {
-      background: #333;
-      color: gold;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ad Integration</title>
+    <script src="https://js.onclckmn.com/static/onclicka.js"></script> <!-- OnClick Ads Script -->
+    <script src="https://cdn.tma-reward.com/adscript.js"></script> <!-- TMA Reward Ads Script -->
+    <style>
+        /* Simple styling for the ad banner and reward section */
+        .ad-banner {
+            width: 300px;
+            height: 250px;
+            background-color: #f1f1f1;
+            border: 1px solid #ddd;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            margin: 20px;
+        }
+        .reward-message {
+            margin-top: 20px;
+            font-size: 16px;
+        }
+        .reward-button {
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            border-radius: 5px;
+        }
+        .reward-button:disabled {
+            background-color: #ccc;
+        }
+    </style>
 </head>
 <body>
-  <div class="card">
-    <h2>Auto GigaPub Ads</h2>
-    <div class="subtitle">Crypto Earning Lab</div>
 
-    <div class="stats">
-      Watched Ads: <span id="watchedCount">0</span><br>
-      Earned Points: <span id="earnedPoints">0</span>
+    <!-- OnClick Ad Banner -->
+    <div class="ad-banner" id="onclick-ad-banner">
+        <span>Click to Watch Ad</span>
     </div>
 
-    <div class="progress-ring" id="progressRing">
-      <div class="progress-text" id="progressText">0%</div>
+    <!-- Reward Section -->
+    <div class="reward-message" id="reward-message">
+        <p>Watch an ad to earn rewards!</p>
+        <button id="reward-btn" class="reward-button">Watch Ad</button>
     </div>
 
-    <button class="btn-gold" id="watchBtn">Watch Ad</button>
-    <button class="btn-gold" id="autoOnBtn">Auto Show Ads</button>
-    <button class="btn-gold" id="autoOffBtn">Stop Auto Ads</button>
-  </div>
+    <script>
+        // Tracking variables
+        let watched = 0;
+        let points = 0;
 
-  <script>
-    let watched = 0;
-    let points = 0;
-    let autoInterval = null;
+        // Update UI for rewards
+        function updateUI() {
+            document.getElementById('reward-message').innerHTML = `
+                <p>You have earned ${points} points!</p>
+                <button id="reward-btn" class="reward-button" ${watched >= 3 ? '' : 'disabled'}>Watch More Ads</button>
+            `;
+        }
 
-    function updateUI() {
-      document.getElementById('watchedCount').textContent = watched;
-      document.getElementById('earnedPoints').textContent = points;
-      let percent = Math.min(100, (points % 100));
-      document.getElementById('progressText').textContent = percent + "%";
-      document.getElementById('progressRing').style.background =
-        `conic-gradient(gold ${percent}%, #333 ${percent}%)`;
-    }
+        // OnClick Ad Integration (Spot ID)
+        document.getElementById('onclick-ad-banner').onclick = function() {
+            if (typeof window.onclckmn !== "undefined") {
+                window.onclckmn.showAd({ spotId: '6089930' }) // Show ad based on spot ID
+                    .then(() => {
+                        watched++;
+                        points += 10; // Earn points after watching the ad
+                        updateUI();
+                    })
+                    .catch(e => {
+                        console.error("Ad error:", e);
+                    });
+            } else {
+                alert("OnClick script not loaded yet!");
+            }
+        };
 
-    function playAd() {
-      if (typeof window.showGiga === "function") {
-        window.showGiga()
-          .then(() => {
-            watched++;
-            points += 5; // প্রতিটি অ্যাডে 5 পয়েন্ট
-            updateUI();
-          })
-          .catch(e => {
-            console.error("Ad error:", e);
-          });
-      } else {
-        alert("GigaPub script not loaded yet!");
-      }
-    }
+        // TMA Reward Ad Integration
+        function showTMARewardAd() {
+            // Initialize and show a reward ad (based on your TMA service)
+            if (typeof window.TMARewardAds !== 'undefined') {
+                window.TMARewardAds.show({
+                    spotId: '6089930', // Use the Spot ID for TMA targeting
+                    onReward: function(rewardPoints) {
+                        watched++;
+                        points += rewardPoints;
+                        updateUI();
+                    },
+                    onError: function(error) {
+                        console.error('TMA Reward Ad Error:', error);
+                    }
+                });
+            } else {
+                alert('TMA Reward Ads service is not available.');
+            }
+        }
 
-    function startAutoShow() {
-      if (autoInterval) return;
-      playAd();
-      autoInterval = setInterval(playAd, 20000); // প্রতি 20 সেকেন্ডে অ্যাড
-    }
+        // Reward button action
+        document.getElementById('reward-btn').onclick = function() {
+            // Disable the button once clicked
+            this.disabled = true;
+            showTMARewardAd();
+        };
 
-    function stopAutoShow() {
-      clearInterval(autoInterval);
-      autoInterval = null;
-    }
+        // Initial UI setup
+        updateUI();
+    </script>
 
-    document.getElementById('watchBtn').onclick = playAd;
-    document.getElementById('autoOnBtn').onclick = startAutoShow;
-    document.getElementById('autoOffBtn').onclick = stopAutoShow;
-
-    updateUI();
-  </script>
 </body>
 </html>
