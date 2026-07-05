@@ -24,18 +24,8 @@
       padding: 20px;
       border: 1px solid #334155;
     }
-    h1 {
-      font-size: 24px;
-      margin-bottom: 4px;
-      color: #f1f5f9;
-      text-align: center;
-    }
-    .subtitle {
-      text-align: center;
-      font-size: 12px;
-      color: #94a3b8;
-      margin-bottom: 16px;
-    }
+    h1 { font-size: 24px; margin-bottom: 4px; color: #f1f5f9; text-align: center; }
+    .subtitle { text-align: center; font-size: 12px; color: #94a3b8; margin-bottom: 16px; }
     .ad-card {
       background: #0f172a;
       border-radius: 12px;
@@ -51,11 +41,7 @@
       flex-wrap: wrap;
       gap: 8px;
     }
-    .ad-title {
-      font-weight: 600;
-      font-size: 18px;
-      color: #f8fafc;
-    }
+    .ad-title { font-weight: 600; font-size: 18px; color: #f8fafc; }
     .badge {
       background: #10b981;
       color: white;
@@ -67,9 +53,6 @@
     .badge.running {
       background: #f59e0b;
       animation: pulse 1.5s infinite;
-    }
-    .badge.stopped {
-      background: #6b7280;
     }
     @keyframes pulse {
       0%, 100% { opacity: 1; }
@@ -104,14 +87,6 @@
       position: relative;
       transition: all 0.3s;
     }
-    .ad-box.active {
-      border-color: #10b981;
-      border-style: solid;
-    }
-    .ad-box.running {
-      border-color: #f59e0b;
-      border-style: solid;
-    }
     .status-msg {
       display: flex;
       align-items: center;
@@ -124,7 +99,6 @@
     .status-msg.loading { color: #fbbf24; }
     .status-msg.error { color: #f87171; }
     .status-msg.success { color: #86efac; }
-    .status-msg.stopped { color: #6b7280; }
     
     .spinner {
       width: 20px;
@@ -134,9 +108,7 @@
       border-radius: 50%;
       animation: spin 0.8s linear infinite;
     }
-    @keyframes spin {
-      to { transform: rotate(360deg); }
-    }
+    @keyframes spin { to { transform: rotate(360deg); } }
     
     .ad-content {
       padding: 12px;
@@ -154,22 +126,9 @@
       background: #334155;
       flex-shrink: 0;
     }
-    .ad-info {
-      flex: 1;
-      min-width: 0;
-    }
-    .ad-info h3 {
-      font-size: 14px;
-      margin-bottom: 4px;
-      color: #f1f5f9;
-      line-height: 1.3;
-    }
-    .ad-info p {
-      font-size: 12px;
-      color: #94a3b8;
-      margin-bottom: 8px;
-      line-height: 1.3;
-    }
+    .ad-info { flex: 1; min-width: 0; }
+    .ad-info h3 { font-size: 14px; margin-bottom: 4px; color: #f1f5f9; line-height: 1.3; }
+    .ad-info p { font-size: 12px; color: #94a3b8; margin-bottom: 8px; line-height: 1.3; }
     .ad-btn {
       display: inline-block;
       background: #3b82f6;
@@ -183,15 +142,9 @@
       cursor: pointer;
       transition: all 0.2s;
     }
-    .ad-btn:hover { background: #2563eb; transform: translateY(-1px); }
+    .ad-btn:hover { background: #2563eb; }
     
-    .btn-row {
-      display: flex;
-      gap: 8px;
-      flex-wrap: wrap;
-      margin-top: 8px;
-      align-items: center;
-    }
+    .btn-row { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px; align-items: center; }
     .btn {
       padding: 8px 16px;
       border-radius: 20px;
@@ -210,30 +163,10 @@
     .btn-send:hover { background: #4f46e5; }
     .btn:disabled { opacity: 0.5; cursor: not-allowed; }
     
-    .timer-indicator {
-      font-size: 11px;
-      color: #fbbf24;
-      margin-left: 8px;
-      font-family: monospace;
-    }
-    .impression-count {
-      font-size: 10px;
-      color: #10b981;
-      margin-left: 8px;
-      font-family: monospace;
-    }
-    .debug-info {
-      font-size: 10px;
-      color: #64748b;
-      margin-top: 4px;
-      font-family: monospace;
-    }
-    .note {
-      font-size: 11px;
-      color: #64748b;
-      text-align: center;
-      margin-top: 16px;
-    }
+    .timer-indicator { font-size: 11px; color: #fbbf24; margin-left: 8px; font-family: monospace; }
+    .impression-count { font-size: 10px; color: #10b981; margin-left: 8px; font-family: monospace; }
+    .debug-info { font-size: 10px; color: #64748b; margin-top: 4px; font-family: monospace; }
+    .note { font-size: 11px; color: #64748b; text-align: center; margin-top: 16px; }
     .bot-status {
       background: #1e293b;
       padding: 8px 12px;
@@ -244,10 +177,7 @@
     }
     .overlay-ad {
       position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
+      top: 0; left: 0; right: 0; bottom: 0;
       background: rgba(0,0,0,0.95);
       z-index: 10;
       display: flex;
@@ -255,10 +185,7 @@
       justify-content: center;
       animation: fadeIn 0.3s ease;
     }
-    @keyframes fadeIn {
-      from { opacity: 0; }
-      to { opacity: 1; }
-    }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
   </style>
 </head>
 <body>
@@ -279,10 +206,8 @@
       { name: "Coin Empire", wid: "f2c903be-ac1d-4f6b-b0c7-8a281363517e", format: "interstitial", note: "Placement #12060" }
     ];
 
-    // Store widget instances and state separately for each placement
     const widgetState = {};
 
-    // Initialize state for each placement
     placements.forEach((p, i) => {
       widgetState[i] = {
         widget: null,
@@ -291,7 +216,7 @@
         countdownInterval: null,
         isRunning: false,
         impressionCount: 0,
-        widgetId: p.wid
+        adReceived: false
       };
     });
 
@@ -299,10 +224,7 @@
       try {
         window.Telegram.WebApp.ready();
         window.Telegram.WebApp.expand();
-        console.log('✅ Telegram WebApp ready');
-      } catch(e) {
-        console.log('Telegram WebApp error:', e);
-      }
+      } catch(e) {}
     }
 
     async function checkBot() {
@@ -323,7 +245,6 @@
       }
     }
 
-    // Create independent widget for a placement
     function createWidget(placement, index) {
       const state = widgetState[index];
       const box = document.getElementById('ad-box-' + index);
@@ -331,12 +252,10 @@
       
       if (typeof AdexiumWidget === 'undefined') {
         box.innerHTML = '<div class="status-msg error">⚠ Adexium SDK not loaded</div>';
-        console.error('AdexiumWidget not available');
         return;
       }
 
       try {
-        // Destroy existing widget
         if (state.widget) {
           try { state.widget.destroy?.(); } catch(e) {}
           state.widget = null;
@@ -344,144 +263,142 @@
 
         box.innerHTML = '<div class="status-msg loading"><div class="spinner"></div>Creating widget...</div>';
 
-        // Create widget WITHOUT debug mode for real ads
+        // Create widget WITHOUT autoMode - we'll control ads manually
         const widget = new AdexiumWidget({
           wid: placement.wid,
           adFormat: placement.format,
-          debug: false, // REAL ads, not test ads
-          firstAdImpressionIntervalInSeconds: 5,
-          adImpressionIntervalInSeconds: 20
+          debug: false
         });
 
         state.widget = widget;
-        console.log(`✅ Widget ${index} created for ${placement.name} (${placement.wid})`);
+        console.log(`✅ Widget ${index} created for ${placement.name}`);
 
-        // Ad received event
+        // Ad received - this is the key event
         widget.on('adReceived', (ad) => {
-          console.log(`📢 [Widget ${index}] Ad received:`, ad);
+          console.log(`📢 [Widget ${index}] AD RECEIVED:`, JSON.stringify(ad));
           state.adCache = ad;
+          state.adReceived = true;
           
-          if (state.isRunning) {
-            displayAdOverlay(box, ad, placement, index);
-          } else {
-            renderAdInBox(box, ad, placement, index);
+          // Display the ad
+          if (ad && ad.creativeUrl) {
+            displayAdInBox(box, ad, placement, index);
+            state.impressionCount++;
+            updateImpressionCount(index);
+            console.log(`👁 [Widget ${index}] Impression #${state.impressionCount}`);
           }
         });
 
-        // No ad found
         widget.on('noAdFound', () => {
-          console.log(`📭 [Widget ${index}] No ad available`);
+          console.log(`📭 [Widget ${index}] No ad found`);
+          state.adReceived = false;
           if (!state.isRunning) {
-            box.innerHTML = '<div class="status-msg success">✅ Widget ready - waiting for ad...</div>';
-            box.classList.add('active');
+            box.innerHTML = '<div class="status-msg success">✅ Widget ready - click Start</div>';
+          } else {
+            box.innerHTML = '<div class="status-msg loading"><div class="spinner"></div>Waiting for next ad...</div>';
           }
         });
 
-        // Ad displayed - count impression
         widget.on('adDisplayed', () => {
-          state.impressionCount++;
-          console.log(`👁 [Widget ${index}] Ad displayed - Impression #${state.impressionCount}`);
-          box.classList.add('active');
-          updateImpressionCount(index);
+          console.log(`👁 [Widget ${index}] adDisplayed event fired`);
         });
 
-        // Ad closed
         widget.on('adClosed', () => {
           console.log(`❌ [Widget ${index}] Ad closed`);
         });
 
-        // Ad clicked
         widget.on('adRedirected', () => {
           console.log(`🔗 [Widget ${index}] Ad clicked`);
         });
 
-        // Ad playback completed
-        widget.on('adPlaybackCompleted', () => {
-          console.log(`✅ [Widget ${index}] Ad playback completed`);
-        });
+        // Request first ad immediately to test
+        setTimeout(() => {
+          console.log(`📡 [Widget ${index}] Requesting initial ad...`);
+          widget.requestAd(placement.format);
+        }, 1000);
 
-        // Start autoMode for this widget
-        widget.autoMode();
-        console.log(`🚀 [Widget ${index}] AutoMode started`);
+        // Check if ad loaded after 5 seconds
+        setTimeout(() => {
+          if (!state.adReceived) {
+            console.log(`⏰ [Widget ${index}] No ad after 5s, requesting again...`);
+            widget.requestAd(placement.format);
+          }
+        }, 5000);
 
       } catch(e) {
         console.error(`❌ [Widget ${index}] Error:`, e);
-        box.innerHTML = `<div class="status-msg error">⚠ Error: ${e.message}</div>`;
+        box.innerHTML = `<div class="status-msg error">⚠ ${e.message}</div>`;
       }
     }
 
-    function displayAdOverlay(box, ad, placement, index) {
+    function displayAdInBox(box, ad, placement, index) {
       const state = widgetState[index];
       
-      // Remove previous overlay
-      const existingOverlay = box.querySelector('.overlay-ad');
-      if (existingOverlay) {
-        existingOverlay.remove();
-      }
+      // If running, show as overlay
+      if (state.isRunning) {
+        const existingOverlay = box.querySelector('.overlay-ad');
+        if (existingOverlay) existingOverlay.remove();
 
-      const overlay = document.createElement('div');
-      overlay.className = 'overlay-ad';
-      overlay.innerHTML = `
-        <div class="ad-content" style="background:#0f172a;border-radius:10px;width:100%;max-width:90%;">
-          <img src="${ad.creativeUrl || ''}" alt="Ad" 
-               onerror="this.style.display='none'"
-               loading="lazy" />
-          <div class="ad-info">
-            <h3>${ad.title || 'Sponsored'}</h3>
-            ${ad.description ? `<p>${ad.description}</p>` : ''}
-            <a href="${ad.clickUrl || '#'}" target="_blank" class="ad-btn" 
-               onclick="window.Telegram?.WebApp?.openLink?.('${ad.clickUrl}')">
-              ${ad.buttonText || 'Open'}
-            </a>
-            <button class="btn btn-start running" style="margin-top:8px;padding:4px 12px;font-size:11px;background:#ef4444;" 
-                    onclick="this.closest('.overlay-ad').remove(); console.log('Overlay closed manually')">✕ Close</button>
+        const overlay = document.createElement('div');
+        overlay.className = 'overlay-ad';
+        overlay.innerHTML = `
+          <div class="ad-content" style="background:#0f172a;border-radius:10px;width:100%;max-width:90%;">
+            <img src="${ad.creativeUrl}" alt="Ad" onerror="this.style.display='none'" loading="lazy" />
+            <div class="ad-info">
+              <h3>${ad.title || 'Sponsored'}</h3>
+              ${ad.description ? `<p>${ad.description}</p>` : ''}
+              <a href="${ad.clickUrl || '#'}" target="_blank" class="ad-btn">${ad.buttonText || 'Open'}</a>
+              <button class="btn btn-start running" style="margin-top:8px;padding:4px 12px;font-size:11px;background:#ef4444;" 
+                      onclick="this.closest('.overlay-ad').remove()">✕ Close</button>
+            </div>
           </div>
-        </div>
-      `;
+        `;
+        box.appendChild(overlay);
+        
+        setTimeout(() => {
+          if (overlay.parentElement) overlay.remove();
+        }, 18000);
+      } else {
+        // Show inline
+        box.innerHTML = `
+          <div class="ad-content">
+            <img src="${ad.creativeUrl}" alt="Ad" onerror="this.style.display='none'" loading="lazy" />
+            <div class="ad-info">
+              <h3>${ad.title || 'Sponsored'}</h3>
+              ${ad.description ? `<p>${ad.description}</p>` : ''}
+              <a href="${ad.clickUrl || '#'}" target="_blank" class="ad-btn">${ad.buttonText || 'Open'}</a>
+            </div>
+          </div>
+          <div class="debug-info">Format: ${ad.adFormat || placement.format} | Real ad</div>
+        `;
+      }
       
-      box.appendChild(overlay);
-      box.classList.add('active', 'running');
-      
-      // Track impression
-      state.impressionCount++;
-      updateImpressionCount(index);
-      console.log(`👁 [Widget ${index}] Overlay ad displayed - Impression #${state.impressionCount}`);
-      
-      // Auto-remove overlay after 18 seconds
-      setTimeout(() => {
-        if (overlay.parentElement) {
-          overlay.remove();
-          console.log(`⏰ [Widget ${index}] Overlay auto-removed after 18s`);
-        }
-      }, 18000);
+      box.classList.add('active');
+      if (state.isRunning) box.classList.add('running');
     }
 
-    function renderAdInBox(box, ad, placement, index) {
-      if (!ad || !ad.creativeUrl) {
-        box.innerHTML = '<div class="status-msg success">✅ Widget active</div>';
+    function requestAdForWidget(index) {
+      const state = widgetState[index];
+      const placement = placements[index];
+      const box = document.getElementById('ad-box-' + index);
+      
+      if (!state.widget) {
+        console.error(`[Widget ${index}] No widget instance`);
         return;
       }
 
-      box.innerHTML = `
-        <div class="ad-content">
-          <img src="${ad.creativeUrl}" alt="Ad" 
-               onerror="this.style.display='none'"
-               loading="lazy" />
-          <div class="ad-info">
-            <h3>${ad.title || 'Sponsored'}</h3>
-            ${ad.description ? `<p>${ad.description}</p>` : ''}
-            <a href="${ad.clickUrl || '#'}" target="_blank" class="ad-btn" 
-               onclick="window.Telegram?.WebApp?.openLink?.('${ad.clickUrl}')">
-              ${ad.buttonText || 'Open'}
-            </a>
-          </div>
-        </div>
-        <div class="debug-info">Format: ${ad.adFormat || placement.format}</div>
-      `;
-      box.classList.add('active');
+      state.adReceived = false;
+      
+      if (state.isRunning && box) {
+        const hasOverlay = box.querySelector('.overlay-ad');
+        if (!hasOverlay) {
+          box.innerHTML = '<div class="status-msg loading"><div class="spinner"></div>Requesting ad...</div>';
+        }
+      }
+
+      console.log(`📡 [Widget ${index}] requestAd(${placement.format})`);
+      state.widget.requestAd(placement.format);
     }
 
-    // START independent auto-reload for a widget
     function startAutoReload(index) {
       const state = widgetState[index];
       if (state.isRunning) return;
@@ -490,50 +407,31 @@
       const placement = placements[index];
       const box = document.getElementById('ad-box-' + index);
 
-      console.log(`▶ [Widget ${index}] Starting auto-reload for ${placement.name}`);
+      console.log(`▶ [Widget ${index}] STARTING auto-reload`);
 
       updateButtonState(index, true);
       updateBadgeState(index, true);
       
       if (box) {
         box.classList.add('running');
-        const hasOverlay = box.querySelector('.overlay-ad');
-        if (!hasOverlay) {
-          box.innerHTML = '<div class="status-msg loading"><div class="spinner"></div>Loading real ad...</div>';
-        }
+        box.innerHTML = '<div class="status-msg loading"><div class="spinner"></div>Requesting first ad...</div>';
       }
 
-      // Request first ad immediately
-      if (state.widget) {
-        try {
-          state.widget.requestAd(placement.format);
-          console.log(`📡 [Widget ${index}] First ad requested`);
-        } catch(e) {
-          console.error(`[Widget ${index}] Error requesting ad:`, e);
-        }
-      }
+      // Request immediately
+      requestAdForWidget(index);
 
       // Clear existing interval
-      if (state.interval) {
-        clearInterval(state.interval);
-      }
+      if (state.interval) clearInterval(state.interval);
 
-      // Set independent interval for this widget - 20 seconds
+      // Set 20 second interval
       state.interval = setInterval(() => {
-        if (state.widget && state.isRunning) {
-          try {
-            state.widget.requestAd(placement.format);
-            console.log(`⏰ [Widget ${index}] Auto-reload triggered (20s)`);
-          } catch(e) {
-            console.error(`[Widget ${index}] Auto-reload error:`, e);
-          }
-        }
+        console.log(`⏰ [Widget ${index}] 20s interval triggered`);
+        requestAdForWidget(index);
       }, 20000);
 
       updateTimer(index);
     }
 
-    // STOP independent auto-reload for a widget
     function stopAutoReload(index) {
       const state = widgetState[index];
       if (!state.isRunning) return;
@@ -542,9 +440,8 @@
       const placement = placements[index];
       const box = document.getElementById('ad-box-' + index);
 
-      console.log(`⏹ [Widget ${index}] Stopping auto-reload for ${placement.name}`);
+      console.log(`⏹ [Widget ${index}] STOPPING auto-reload`);
 
-      // Clear intervals
       if (state.interval) {
         clearInterval(state.interval);
         state.interval = null;
@@ -565,78 +462,48 @@
     }
 
     function updateButtonState(index, running) {
-      const startBtn = document.getElementById('start-btn-' + index);
-      if (startBtn) {
-        if (running) {
-          startBtn.textContent = '⏹ Stop';
-          startBtn.className = 'btn btn-start running';
-        } else {
-          startBtn.textContent = '▶ Start';
-          startBtn.className = 'btn btn-start';
-        }
+      const btn = document.getElementById('start-btn-' + index);
+      if (btn) {
+        btn.textContent = running ? '⏹ Stop' : '▶ Start';
+        btn.className = running ? 'btn btn-start running' : 'btn btn-start';
       }
     }
 
     function updateBadgeState(index, running) {
       const badge = document.getElementById('badge-' + index);
       if (badge) {
-        if (running) {
-          badge.textContent = 'running';
-          badge.className = 'badge running';
-        } else {
-          badge.textContent = 'active';
-          badge.className = 'badge';
-        }
+        badge.textContent = running ? 'running' : 'active';
+        badge.className = running ? 'badge running' : 'badge';
       }
     }
 
     function updateImpressionCount(index) {
       const state = widgetState[index];
-      const countEl = document.getElementById('imp-count-' + index);
-      if (countEl) {
-        countEl.textContent = `👁 ${state.impressionCount} impressions`;
-      }
+      const el = document.getElementById('imp-count-' + index);
+      if (el) el.textContent = `👁 ${state.impressionCount} impressions`;
     }
 
     function updateTimer(index) {
       const state = widgetState[index];
       if (!state.isRunning) return;
-
-      if (state.countdownInterval) {
-        clearInterval(state.countdownInterval);
-      }
+      if (state.countdownInterval) clearInterval(state.countdownInterval);
 
       let seconds = 20;
-      const timerEl = document.getElementById('timer-' + index);
-      if (timerEl) {
-        timerEl.textContent = `Next ad in ${seconds}s`;
-      }
+      const el = document.getElementById('timer-' + index);
+      if (el) el.textContent = `Next ad in ${seconds}s`;
 
       state.countdownInterval = setInterval(() => {
-        if (!state.isRunning) {
-          clearInterval(state.countdownInterval);
-          return;
-        }
-        
+        if (!state.isRunning) { clearInterval(state.countdownInterval); return; }
         seconds--;
-        if (seconds <= 0) {
-          seconds = 20;
-        }
-        
-        if (timerEl) {
-          timerEl.textContent = `Next ad in ${seconds}s`;
-        }
+        if (seconds <= 0) seconds = 20;
+        if (el) el.textContent = `Next ad in ${seconds}s`;
       }, 1000);
     }
 
     async function sendToBot(index) {
       const state = widgetState[index];
       const ad = state.adCache;
-      
-      if (!ad?.creativeUrl) {
-        alert('No ad available. Start auto-reload first.');
-        return;
-      }
+      if (!ad?.creativeUrl) { alert('No ad available yet'); return; }
 
       const user = { telegramId: 'test123' };
       try {
@@ -656,18 +523,13 @@
             chat_id: user.telegramId,
             photo: ad.creativeUrl,
             caption: `${ad.title || ''}\n\n${ad.description || ''}`,
-            reply_markup: {
-              inline_keyboard: [[{ text: ad.buttonText || 'Open', url: ad.clickUrl }]]
-            }
+            reply_markup: { inline_keyboard: [[{ text: ad.buttonText || 'Open', url: ad.clickUrl }]] }
           })
         });
-
         const result = await res.json();
         if (result.ok) {
           if (btn) { btn.textContent = '✅ Sent!'; }
-          setTimeout(() => { 
-            if (btn) { btn.textContent = '📨 Send to Bot'; btn.disabled = false; } 
-          }, 3000);
+          setTimeout(() => { if (btn) { btn.textContent = '📨 Send to Bot'; btn.disabled = false; } }, 3000);
         } else {
           throw new Error(result.description || 'Failed');
         }
@@ -678,8 +540,7 @@
     }
 
     function toggleAutoReload(index) {
-      const state = widgetState[index];
-      if (state.isRunning) {
+      if (widgetState[index].isRunning) {
         stopAutoReload(index);
       } else {
         startAutoReload(index);
@@ -688,7 +549,6 @@
 
     function renderAll() {
       const container = document.getElementById('adsContainer');
-      
       container.innerHTML = placements.map((p, i) => `
         <div class="ad-card">
           <div class="ad-header">
@@ -698,7 +558,7 @@
           </div>
           <code class="wid">${p.wid}</code>
           <div class="ad-box" id="ad-box-${i}">
-            <div class="status-msg loading"><div class="spinner"></div>Initializing widget...</div>
+            <div class="status-msg loading"><div class="spinner"></div>Initializing...</div>
           </div>
           <div class="btn-row">
             <button class="btn btn-start" id="start-btn-${i}" onclick="toggleAutoReload(${i})">▶ Start</button>
@@ -710,60 +570,37 @@
         </div>
       `).join('');
 
-      // Initialize each widget independently
       placements.forEach((p, i) => {
         setTimeout(() => createWidget(p, i), i * 1000);
       });
     }
 
-    // Expose functions globally
     window.toggleAutoReload = toggleAutoReload;
-    window.startAutoReload = startAutoReload;
-    window.stopAutoReload = stopAutoReload;
     window.sendToBot = sendToBot;
 
     async function init() {
-      console.log('🚀 Adexium Dashboard - Independent Widgets');
-      console.log('AdexiumWidget available:', typeof AdexiumWidget !== 'undefined');
-      console.log('Widgets will operate independently with REAL ads');
-      
+      console.log('🚀 Adexium Dashboard');
+      console.log('AdexiumWidget:', typeof AdexiumWidget);
       await checkBot();
       renderAll();
     }
 
-    function waitForSDK(callback) {
-      if (typeof AdexiumWidget !== 'undefined') {
-        console.log('✅ AdexiumWidget already loaded');
-        callback();
-        return;
-      }
-      
-      console.log('⏳ Waiting for AdexiumWidget SDK...');
+    function waitForSDK(cb) {
+      if (typeof AdexiumWidget !== 'undefined') { cb(); return; }
       let attempts = 0;
-      const interval = setInterval(() => {
-        if (typeof AdexiumWidget !== 'undefined') {
-          clearInterval(interval);
-          console.log('✅ AdexiumWidget SDK loaded');
-          callback();
-        } else if (attempts >= 50) {
-          clearInterval(interval);
-          console.error('❌ AdexiumWidget SDK failed to load');
-          callback();
-        }
-        attempts++;
+      const int = setInterval(() => {
+        if (typeof AdexiumWidget !== 'undefined') { clearInterval(int); cb(); }
+        else if (attempts++ >= 50) { clearInterval(int); cb(); }
       }, 500);
     }
 
-    document.addEventListener('DOMContentLoaded', () => {
-      waitForSDK(init);
-    });
+    document.addEventListener('DOMContentLoaded', () => waitForSDK(init));
 
-    // Cleanup on page unload
     window.addEventListener('beforeunload', () => {
       placements.forEach((p, i) => {
-        const state = widgetState[i];
-        if (state.interval) clearInterval(state.interval);
-        if (state.countdownInterval) clearInterval(state.countdownInterval);
+        const s = widgetState[i];
+        if (s.interval) clearInterval(s.interval);
+        if (s.countdownInterval) clearInterval(s.countdownInterval);
       });
     });
   </script>
