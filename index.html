@@ -6,6 +6,7 @@
   <meta http-equiv="imagetoolbar" content="no">
   <title>Adexium Ads Dashboard</title>
   <script src="https://telegram.org/js/telegram-web-app.js?56"></script>
+  <!-- Correct Adexium script URL from documentation -->
   <script type="text/javascript" src="https://cdn.adexium.tech/assets/js/adexium-widget.min.js"></script>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -64,17 +65,6 @@
       font-size: 11px;
       font-weight: 600;
     }
-    .badge.running {
-      background: #f59e0b;
-      animation: pulse 1.5s infinite;
-    }
-    .badge.stopped {
-      background: #6b7280;
-    }
-    @keyframes pulse {
-      0%, 100% { opacity: 1; }
-      50% { opacity: 0.6; }
-    }
     .format {
       background: #6366f1;
       color: white;
@@ -97,7 +87,7 @@
     .ad-box {
       background: #0f172a;
       border-radius: 10px;
-      min-height: 120px;
+      min-height: 100px;
       margin: 12px 0;
       border: 1px dashed #334155;
       overflow: hidden;
@@ -108,23 +98,17 @@
       border-color: #10b981;
       border-style: solid;
     }
-    .ad-box.running {
-      border-color: #f59e0b;
-      border-style: solid;
-    }
     .status-msg {
       display: flex;
       align-items: center;
       justify-content: center;
-      min-height: 120px;
+      min-height: 100px;
       font-size: 14px;
       gap: 8px;
-      flex-direction: column;
     }
     .status-msg.loading { color: #fbbf24; }
     .status-msg.error { color: #f87171; }
     .status-msg.success { color: #86efac; }
-    .status-msg.stopped { color: #6b7280; }
     
     .spinner {
       width: 20px;
@@ -143,8 +127,6 @@
       display: flex;
       gap: 12px;
       align-items: flex-start;
-      position: relative;
-      z-index: 1;
     }
     .ad-content img {
       width: 80px;
@@ -190,7 +172,6 @@
       gap: 8px;
       flex-wrap: wrap;
       margin-top: 8px;
-      align-items: center;
     }
     .btn {
       padding: 8px 16px;
@@ -202,20 +183,14 @@
       transition: all 0.2s;
       color: white;
     }
-    .btn-start { background: #10b981; }
-    .btn-start:hover { background: #059669; }
-    .btn-start.running { background: #f59e0b; }
-    .btn-start.running:hover { background: #d97706; }
-    .btn-send { background: #6366f1; }
-    .btn-send:hover { background: #4f46e5; }
+    .btn-reload { background: #3b82f6; }
+    .btn-reload:hover { background: #2563eb; }
+    .btn-show { background: #8b5cf6; }
+    .btn-show:hover { background: #7c3aed; }
+    .btn-send { background: #10b981; }
+    .btn-send:hover { background: #059669; }
     .btn:disabled { opacity: 0.5; cursor: not-allowed; }
     
-    .timer-indicator {
-      font-size: 11px;
-      color: #fbbf24;
-      margin-left: 8px;
-      font-family: monospace;
-    }
     .debug-info {
       font-size: 10px;
       color: #64748b;
@@ -236,32 +211,15 @@
       font-size: 12px;
       text-align: center;
     }
-    .overlay-ad {
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background: rgba(0,0,0,0.95);
-      z-index: 10;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      animation: fadeIn 0.3s ease;
-    }
-    @keyframes fadeIn {
-      from { opacity: 0; }
-      to { opacity: 1; }
-    }
   </style>
 </head>
 <body>
   <div class="container">
     <h1>📡 Adexium Ads</h1>
-    <div class="subtitle">Auto-reload ads every 20 seconds</div>
+    <div class="subtitle">Telegram Mini App Monetization</div>
     <div class="bot-status" id="botStatus">⏳ Initializing...</div>
     <div id="adsContainer"></div>
-    <div class="note">Click Start to begin auto-reload • Ads overlap previous ones</div>
+    <div class="note">Ads load automatically • @AdexiumExampleBot for demo</div>
   </div>
 
   <script>
@@ -273,11 +231,12 @@
       { name: "Coin Empire", wid: "f2c903be-ac1d-4f6b-b0c7-8a281363517e", format: "interstitial", note: "Waiting for first request" }
     ];
 
+    // Store widget instances
     const widgets = {};
+    // Store received ad data
     const adCache = {};
-    const intervals = {};
-    const isRunning = {};
 
+    // Initialize Telegram WebApp
     if (window.Telegram?.WebApp) {
       try {
         window.Telegram.WebApp.ready();
@@ -288,6 +247,7 @@
       }
     }
 
+    // Check bot connection
     async function checkBot() {
       const status = document.getElementById('botStatus');
       try {
@@ -301,15 +261,17 @@
           status.style.color = '#fbbf24';
         }
       } catch(e) {
-        status.innerHTML = '⚠ Cannot verify bot';
+        status.innerHTML = '⚠ Cannot verify bot (will still work for ads)';
         status.style.color = '#fbbf24';
       }
     }
 
+    // Create widget for a placement
     function createWidget(placement, index) {
       const box = document.getElementById('ad-box-' + index);
       if (!box) return;
       
+      // Check if AdexiumWidget is available
       if (typeof AdexiumWidget === 'undefined') {
         box.innerHTML = '<div class="status-msg error">⚠ Adexium SDK not loaded</div>';
         console.error('AdexiumWidget not available');
@@ -323,66 +285,53 @@
           delete widgets[index];
         }
 
-        box.innerHTML = '<div class="status-msg loading"><div class="spinner"></div>Creating widget...</div>';
+        box.innerHTML = '<div class="status-msg loading"><div class="spinner"></div> Initializing widget...</div>';
 
-        // Create widget with debug mode to ensure ads show
+        // Create widget with CORRECT parameters from documentation
         const widget = new AdexiumWidget({
           wid: placement.wid,
           adFormat: placement.format,
-          debug: true, // Enable debug mode to get test ads
-          firstAdImpressionIntervalInSeconds: 3,
-          adImpressionIntervalInSeconds: 20
+          debug: false, // Set to true for testing
+          firstAdImpressionIntervalInSeconds: 5, // Show first ad after 5 seconds
+          adImpressionIntervalInSeconds: 100
         });
 
         widgets[index] = widget;
-        console.log(`✅ Widget created for ${placement.name} (debug: true)`);
+        console.log(`✅ Widget created for ${placement.name}`);
 
-        // Listen for ad received
+        // Listen for ad received event
         widget.on('adReceived', (ad) => {
           console.log(`📢 Ad received for ${placement.name}:`, ad);
           adCache[index] = ad;
-          
-          if (isRunning[index]) {
-            displayAdOverlay(box, ad, placement, index);
-          } else {
-            renderAdInBox(box, ad, placement, index);
-          }
+          renderAdInBox(box, ad, placement, index);
         });
 
         // Listen for no ad found
         widget.on('noAdFound', () => {
           console.log(`📭 No ad found for ${placement.name}`);
-          if (!isRunning[index]) {
-            box.innerHTML = '<div class="status-msg success">✅ Widget ready - waiting for ad...</div>';
-            box.classList.add('active');
-          }
+          box.innerHTML = '<div class="status-msg success">✅ Widget ready - waiting for ad...</div>';
+          box.classList.add('active');
         });
 
+        // Listen for ad displayed
         widget.on('adDisplayed', () => {
           console.log(`👁 Ad displayed for ${placement.name}`);
           box.classList.add('active');
         });
 
+        // Listen for ad closed
         widget.on('adClosed', () => {
           console.log(`❌ Ad closed for ${placement.name}`);
         });
 
+        // Listen for ad redirected (clicked)
         widget.on('adRedirected', () => {
           console.log(`🔗 Ad clicked for ${placement.name}`);
         });
 
-        // Start autoMode immediately so ads show
+        // Start auto mode
         widget.autoMode();
-        console.log(`🚀 AutoMode started for ${placement.name}`);
-
-        // After 3 seconds, check if ad loaded
-        setTimeout(() => {
-          const hasAd = box.querySelector('img') || box.querySelector('iframe') || box.querySelector('.ad-content');
-          if (!hasAd && !isRunning[index]) {
-            box.innerHTML = '<div class="status-msg success">✅ Widget active - click Start</div>';
-            box.classList.add('active');
-          }
-        }, 3000);
+        console.log(`🚀 Auto mode started for ${placement.name}`);
 
       } catch(e) {
         console.error(`❌ Widget error for ${placement.name}:`, e);
@@ -390,47 +339,10 @@
       }
     }
 
-    function displayAdOverlay(box, ad, placement, index) {
-      // Remove previous overlay
-      const existingOverlay = box.querySelector('.overlay-ad');
-      if (existingOverlay) {
-        existingOverlay.remove();
-      }
-
-      const overlay = document.createElement('div');
-      overlay.className = 'overlay-ad';
-      overlay.innerHTML = `
-        <div class="ad-content" style="background:#0f172a;border-radius:10px;width:100%;max-width:90%;">
-          <img src="${ad.creativeUrl || ''}" alt="Ad" 
-               onerror="this.style.display='none'"
-               loading="lazy" />
-          <div class="ad-info">
-            <h3>${ad.title || 'Sponsored'}</h3>
-            ${ad.description ? `<p>${ad.description}</p>` : ''}
-            <a href="${ad.clickUrl || '#'}" target="_blank" class="ad-btn" 
-               onclick="window.Telegram?.WebApp?.openLink?.('${ad.clickUrl}')">
-              ${ad.buttonText || 'Open'}
-            </a>
-            <button class="btn btn-start running" style="margin-top:8px;padding:4px 12px;font-size:11px;background:#ef4444;" 
-                    onclick="this.closest('.overlay-ad').remove()">✕ Close</button>
-          </div>
-        </div>
-      `;
-      
-      box.appendChild(overlay);
-      box.classList.add('active', 'running');
-      
-      // Auto-remove overlay after 18 seconds
-      setTimeout(() => {
-        if (overlay.parentElement) {
-          overlay.remove();
-        }
-      }, 18000);
-    }
-
+    // Render ad in the box manually
     function renderAdInBox(box, ad, placement, index) {
       if (!ad || !ad.creativeUrl) {
-        box.innerHTML = '<div class="status-msg success">✅ Widget active</div>';
+        box.innerHTML = '<div class="status-msg success">✅ Ad received (no creative)</div>';
         return;
       }
 
@@ -453,150 +365,48 @@
       box.classList.add('active');
     }
 
-    function startAutoReload(index) {
-      if (isRunning[index]) return;
-
-      isRunning[index] = true;
-      const placement = placements[index];
-      const box = document.getElementById('ad-box-' + index);
+    // Manual request ad for a placement
+    function requestAd(index) {
       const widget = widgets[index];
-
-      console.log(`▶ Starting auto-reload for ${placement.name}`);
-
-      updateButtonState(index, true);
-      updateBadgeState(index, true);
-      
-      if (box) {
-        box.classList.add('running');
-        const hasOverlay = box.querySelector('.overlay-ad');
-        if (!hasOverlay) {
-          box.innerHTML = '<div class="status-msg loading"><div class="spinner"></div>Starting auto-reload every 20s...</div>';
-        }
-      }
-
-      // Request first ad immediately
-      if (widget) {
-        try {
-          widget.requestAd(placement.format);
-          console.log(`📡 First ad requested for ${placement.name}`);
-        } catch(e) {
-          console.error(`Error requesting ad:`, e);
-        }
-      }
-
-      // Clear existing interval if any
-      if (intervals[index]) {
-        clearInterval(intervals[index]);
-      }
-
-      // Set interval to reload every 20 seconds
-      intervals[index] = setInterval(() => {
-        console.log(`⏰ Auto-reload triggered for ${placement.name}`);
-        if (widget && isRunning[index]) {
-          try {
-            widget.requestAd(placement.format);
-          } catch(e) {
-            console.error(`Error in auto-reload:`, e);
-          }
-        }
-      }, 20000);
-
-      updateTimer(index);
-    }
-
-    function stopAutoReload(index) {
-      if (!isRunning[index]) return;
-
-      isRunning[index] = false;
       const placement = placements[index];
       const box = document.getElementById('ad-box-' + index);
-
-      console.log(`⏹ Stopping auto-reload for ${placement.name}`);
-
-      if (intervals[index]) {
-        clearInterval(intervals[index]);
-        delete intervals[index];
-      }
-
-      // Clear countdown
-      if (intervals['countdown_' + index]) {
-        clearInterval(intervals['countdown_' + index]);
-        delete intervals['countdown_' + index];
-      }
-
-      updateButtonState(index, false);
-      updateBadgeState(index, false);
       
-      if (box) {
-        box.classList.remove('running');
-        const overlays = box.querySelectorAll('.overlay-ad');
-        overlays.forEach(o => o.remove());
-        
-        const timer = box.querySelector('.timer-indicator');
-        if (timer) timer.remove();
+      if (!widget) {
+        console.log('Widget not found, recreating...');
+        createWidget(placement, index);
+        return;
+      }
+
+      box.innerHTML = '<div class="status-msg loading"><div class="spinner"></div> Requesting ad...</div>';
+      
+      try {
+        widget.requestAd(placement.format);
+        console.log(`📡 Ad requested for ${placement.name}`);
+      } catch(e) {
+        console.error(`Error requesting ad for ${placement.name}:`, e);
+        box.innerHTML = `<div class="status-msg error">⚠ ${e.message}</div>`;
       }
     }
 
-    function updateButtonState(index, running) {
-      const startBtn = document.getElementById('start-btn-' + index);
-      if (startBtn) {
-        if (running) {
-          startBtn.textContent = '⏹ Stop';
-          startBtn.className = 'btn btn-start running';
-        } else {
-          startBtn.textContent = '▶ Start';
-          startBtn.className = 'btn btn-start';
-        }
+    // Display ad manually
+    function showAd(index) {
+      const widget = widgets[index];
+      const ad = adCache[index];
+      
+      if (ad && widget) {
+        console.log('Displaying cached ad...');
+        widget.displayAd(ad);
+      } else {
+        console.log('No cached ad, requesting new one...');
+        requestAd(index);
       }
     }
 
-    function updateBadgeState(index, running) {
-      const badge = document.getElementById('badge-' + index);
-      if (badge) {
-        if (running) {
-          badge.textContent = 'running';
-          badge.className = 'badge running';
-        } else {
-          badge.textContent = 'active';
-          badge.className = 'badge';
-        }
-      }
-    }
-
-    function updateTimer(index) {
-      if (!isRunning[index]) return;
-
-      if (intervals['countdown_' + index]) {
-        clearInterval(intervals['countdown_' + index]);
-      }
-
-      let seconds = 20;
-      const timerEl = document.getElementById('timer-' + index);
-      if (timerEl) {
-        timerEl.textContent = `Next ad in ${seconds}s`;
-      }
-
-      intervals['countdown_' + index] = setInterval(() => {
-        if (!isRunning[index]) {
-          clearInterval(intervals['countdown_' + index]);
-          return;
-        }
-        
-        seconds--;
-        if (seconds <= 0) {
-          seconds = 20;
-        }
-        
-        if (timerEl) {
-          timerEl.textContent = `Next ad in ${seconds}s`;
-        }
-      }, 1000);
-    }
-
+    // Send ad to user via bot
     async function sendToBot(index) {
       const ad = adCache[index];
       if (!ad?.creativeUrl) {
-        alert('No ad available. Start auto-reload first.');
+        alert('No ad available to send. Wait for an ad to load first.');
         return;
       }
 
@@ -639,14 +449,7 @@
       }
     }
 
-    function toggleAutoReload(index) {
-      if (isRunning[index]) {
-        stopAutoReload(index);
-      } else {
-        startAutoReload(index);
-      }
-    }
-
+    // Render all placement cards
     function renderAll() {
       const container = document.getElementById('adsContainer');
       
@@ -654,33 +457,34 @@
         <div class="ad-card">
           <div class="ad-header">
             <span class="ad-title">${p.name}</span>
-            <span class="badge" id="badge-${i}">active</span>
+            <span class="badge">active</span>
             <span class="format">${p.format}</span>
           </div>
           <code class="wid">${p.wid}</code>
           <div class="ad-box" id="ad-box-${i}">
-            <div class="status-msg loading"><div class="spinner"></div>Initializing widget...</div>
+            <div class="status-msg loading"><div class="spinner"></div> Loading...</div>
           </div>
           <div class="btn-row">
-            <button class="btn btn-start" id="start-btn-${i}" onclick="toggleAutoReload(${i})">▶ Start</button>
+            <button class="btn btn-reload" onclick="requestAd(${i})">🔄 Reload</button>
+            <button class="btn btn-show" onclick="showAd(${i})">👁 Show Ad</button>
             <button class="btn btn-send" id="send-btn-${i}" onclick="sendToBot(${i})">📨 Send to Bot</button>
-            <span class="timer-indicator" id="timer-${i}"></span>
           </div>
           <div class="debug-info">${p.note}</div>
         </div>
       `).join('');
 
-      // Initialize widgets with autoMode
+      // Initialize widgets for each placement
       placements.forEach((p, i) => {
-        setTimeout(() => createWidget(p, i), i * 800);
+        setTimeout(() => createWidget(p, i), i * 1000);
       });
     }
 
-    window.toggleAutoReload = toggleAutoReload;
-    window.startAutoReload = startAutoReload;
-    window.stopAutoReload = stopAutoReload;
+    // Expose functions globally
+    window.requestAd = requestAd;
+    window.showAd = showAd;
     window.sendToBot = sendToBot;
 
+    // Initialize
     async function init() {
       console.log('🚀 Adexium Dashboard starting...');
       console.log('AdexiumWidget available:', typeof AdexiumWidget !== 'undefined');
@@ -689,9 +493,9 @@
       renderAll();
     }
 
+    // Wait for AdexiumWidget to be available
     function waitForSDK(callback) {
       if (typeof AdexiumWidget !== 'undefined') {
-        console.log('✅ AdexiumWidget already loaded');
         callback();
         return;
       }
@@ -703,10 +507,10 @@
           clearInterval(interval);
           console.log('✅ AdexiumWidget SDK loaded');
           callback();
-        } else if (attempts >= 50) {
+        } else if (attempts >= 30) {
           clearInterval(interval);
-          console.error('❌ AdexiumWidget SDK failed to load after 25 seconds');
-          callback();
+          console.error('❌ AdexiumWidget SDK failed to load');
+          callback(); // Continue anyway
         }
         attempts++;
       }, 500);
@@ -714,12 +518,6 @@
 
     document.addEventListener('DOMContentLoaded', () => {
       waitForSDK(init);
-    });
-
-    window.addEventListener('beforeunload', () => {
-      Object.keys(intervals).forEach(key => {
-        clearInterval(intervals[key]);
-      });
     });
   </script>
 </body>
