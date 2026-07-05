@@ -3,8 +3,11 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta http-equiv="imagetoolbar" content="no">
   <title>Adexium Ads Dashboard</title>
   <script src="https://telegram.org/js/telegram-web-app.js?56"></script>
+  <!-- Correct Adexium script URL from documentation -->
+  <script type="text/javascript" src="https://cdn.adexium.tech/assets/js/adexium-widget.min.js"></script>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
@@ -24,9 +27,15 @@
     }
     h1 {
       font-size: 24px;
-      margin-bottom: 20px;
+      margin-bottom: 4px;
       color: #f1f5f9;
       text-align: center;
+    }
+    .subtitle {
+      text-align: center;
+      font-size: 12px;
+      color: #94a3b8;
+      margin-bottom: 16px;
     }
     .ad-card {
       background: #0f172a;
@@ -39,7 +48,7 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 12px;
+      margin-bottom: 8px;
       flex-wrap: wrap;
       gap: 8px;
     }
@@ -51,45 +60,72 @@
     .badge {
       background: #10b981;
       color: white;
-      padding: 4px 12px;
+      padding: 4px 10px;
       border-radius: 20px;
-      font-size: 12px;
+      font-size: 11px;
       font-weight: 600;
     }
     .format {
       background: #6366f1;
       color: white;
-      padding: 4px 12px;
+      padding: 4px 10px;
       border-radius: 20px;
-      font-size: 12px;
+      font-size: 11px;
       text-transform: uppercase;
     }
     .wid {
       font-family: monospace;
-      font-size: 11px;
+      font-size: 10px;
       color: #94a3b8;
       background: #1e293b;
       padding: 4px 8px;
       border-radius: 8px;
       word-break: break-all;
       margin: 8px 0;
+      display: block;
     }
     .ad-box {
-      background: #1e293b;
+      background: #0f172a;
       border-radius: 10px;
-      min-height: 120px;
+      min-height: 100px;
+      margin: 12px 0;
+      border: 1px dashed #334155;
+      overflow: hidden;
+      position: relative;
+      transition: all 0.3s;
+    }
+    .ad-box.active {
+      border-color: #10b981;
+      border-style: solid;
+    }
+    .status-msg {
       display: flex;
       align-items: center;
       justify-content: center;
-      margin: 12px 0;
-      border: 1px dashed #475569;
-      overflow: hidden;
+      min-height: 100px;
+      font-size: 14px;
+      gap: 8px;
     }
+    .status-msg.loading { color: #fbbf24; }
+    .status-msg.error { color: #f87171; }
+    .status-msg.success { color: #86efac; }
+    
+    .spinner {
+      width: 20px;
+      height: 20px;
+      border: 2px solid #334155;
+      border-top: 2px solid #fbbf24;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    
     .ad-content {
+      padding: 12px;
       display: flex;
       gap: 12px;
-      padding: 12px;
-      width: 100%;
       align-items: flex-start;
     }
     .ad-content img {
@@ -98,14 +134,23 @@
       border-radius: 8px;
       object-fit: cover;
       background: #334155;
+      flex-shrink: 0;
     }
     .ad-info {
       flex: 1;
+      min-width: 0;
     }
     .ad-info h3 {
       font-size: 14px;
-      margin-bottom: 8px;
+      margin-bottom: 4px;
       color: #f1f5f9;
+      line-height: 1.3;
+    }
+    .ad-info p {
+      font-size: 12px;
+      color: #94a3b8;
+      margin-bottom: 8px;
+      line-height: 1.3;
     }
     .ad-btn {
       display: inline-block;
@@ -116,183 +161,93 @@
       text-decoration: none;
       font-size: 13px;
       font-weight: 600;
-      margin-top: 8px;
       border: none;
       cursor: pointer;
-      transition: background 0.2s;
+      transition: all 0.2s;
     }
-    .ad-btn:hover { background: #2563eb; }
-    .ad-btn.green { background: #10b981; }
-    .ad-btn.green:hover { background: #059669; }
+    .ad-btn:hover { background: #2563eb; transform: translateY(-1px); }
     
-    .loading {
-      color: #fbbf24;
-      font-size: 14px;
-      text-align: center;
-      padding: 20px;
-    }
-    .error {
-      color: #f87171;
-      font-size: 14px;
-      text-align: center;
-      padding: 20px;
-    }
-    .status {
-      font-size: 12px;
-      color: #94a3b8;
-      margin-top: 8px;
-    }
-    .buttons {
+    .btn-row {
       display: flex;
       gap: 8px;
       flex-wrap: wrap;
-      margin-top: 12px;
+      margin-top: 8px;
+    }
+    .btn {
+      padding: 8px 16px;
+      border-radius: 20px;
+      font-size: 13px;
+      font-weight: 600;
+      border: none;
+      cursor: pointer;
+      transition: all 0.2s;
+      color: white;
+    }
+    .btn-reload { background: #3b82f6; }
+    .btn-reload:hover { background: #2563eb; }
+    .btn-show { background: #8b5cf6; }
+    .btn-show:hover { background: #7c3aed; }
+    .btn-send { background: #10b981; }
+    .btn-send:hover { background: #059669; }
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    
+    .debug-info {
+      font-size: 10px;
+      color: #64748b;
+      margin-top: 4px;
+      font-family: monospace;
     }
     .note {
-      font-size: 12px;
+      font-size: 11px;
       color: #64748b;
-      margin-top: 16px;
       text-align: center;
+      margin-top: 16px;
     }
     .bot-status {
       background: #1e293b;
-      padding: 10px;
+      padding: 8px 12px;
       border-radius: 8px;
       margin-bottom: 16px;
-      font-size: 13px;
+      font-size: 12px;
       text-align: center;
-      color: #94a3b8;
     }
   </style>
 </head>
 <body>
   <div class="container">
     <h1>📡 Adexium Ads</h1>
-    <div class="bot-status" id="botStatus">Checking bot connection...</div>
+    <div class="subtitle">Telegram Mini App Monetization</div>
+    <div class="bot-status" id="botStatus">⏳ Initializing...</div>
     <div id="adsContainer"></div>
-    <div class="note">Ads refresh automatically • Real users only</div>
+    <div class="note">Ads load automatically • @AdexiumExampleBot for demo</div>
   </div>
 
   <script>
     const BOT_TOKEN = '8730973868:AAGJjqGwN5wpNjlcqb6L335VRZZhvo4u8Uc';
     
     const placements = [
-      {
-        name: "Ticgames",
-        wid: "30015b9a-df1e-4895-be7b-c5bc1b148fcf",
-        format: "push-like",
-        note: "Integration working"
-      },
-      {
-        name: "Coin Empire",
-        wid: "d29f2549-2e28-4016-8b89-f36b11f66244",
-        format: "push-like",
-        note: "Integration working"
-      },
-      {
-        name: "Coin Empire",
-        wid: "f2c903be-ac1d-4f6b-b0c7-8a281363517e",
-        format: "interstitial",
-        note: "Waiting for first request"
-      }
+      { name: "Ticgames", wid: "30015b9a-df1e-4895-be7b-c5bc1b148fcf", format: "push-like", note: "Integration working" },
+      { name: "Coin Empire", wid: "d29f2549-2e28-4016-8b89-f36b11f66244", format: "push-like", note: "Integration working" },
+      { name: "Coin Empire", wid: "f2c903be-ac1d-4f6b-b0c7-8a281363517e", format: "interstitial", note: "Waiting for first request" }
     ];
 
-    const adData = {};
+    // Store widget instances
+    const widgets = {};
+    // Store received ad data
+    const adCache = {};
 
-    function getUserData() {
-      const data = { telegramId: 'test123', firstName: 'User', language: 'en', isPremium: false };
+    // Initialize Telegram WebApp
+    if (window.Telegram?.WebApp) {
       try {
-        if (window.Telegram?.WebApp?.initDataUnsafe?.user) {
-          const u = window.Telegram.WebApp.initDataUnsafe.user;
-          data.telegramId = String(u.id || 'test123');
-          data.firstName = u.first_name || 'User';
-          data.language = u.language_code || 'en';
-          data.isPremium = u.is_premium || false;
-        }
-      } catch(e) {}
-      return data;
-    }
-
-    async function fetchAd(placement, index) {
-      const box = document.getElementById('ad-box-' + index);
-      if (!box) return;
-      
-      box.innerHTML = '<div class="loading">⏳ Loading ad...</div>';
-      
-      const user = getUserData();
-      
-      try {
-        const res = await fetch('https://bid.tgads.live/bot-request', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            wid: placement.wid,
-            language: user.language,
-            isPremium: user.isPremium,
-            firstName: user.firstName,
-            telegramId: user.telegramId
-          })
-        });
-        
-        if (!res.ok) throw new Error('HTTP ' + res.status);
-        
-        const data = await res.json();
-        adData[index] = data;
-        
-        if (data.image) {
-          box.innerHTML = `
-            <div class="ad-content">
-              <img src="${data.image}" alt="Ad" onerror="this.style.display='none'" />
-              <div class="ad-info">
-                <h3>${data.text || 'Sponsored'}</h3>
-                <a href="${data.clickUrl || '#'}" target="_blank" class="ad-btn" onclick="window.Telegram?.WebApp?.openLink?.('${data.clickUrl}')">
-                  ${data.buttonText || 'Open'}
-                </a>
-              </div>
-            </div>
-          `;
-        } else {
-          box.innerHTML = '<div class="loading">📭 No ad available</div>';
-        }
+        window.Telegram.WebApp.ready();
+        window.Telegram.WebApp.expand();
+        console.log('✅ Telegram WebApp ready');
       } catch(e) {
-        box.innerHTML = '<div class="error">⚠ ' + e.message + '</div>';
-        console.error('Ad fetch error:', e);
+        console.log('Telegram WebApp error:', e);
       }
     }
 
-    async function sendToBot(index) {
-      const data = adData[index];
-      if (!data?.image) { alert('No ad to send'); return; }
-      
-      const user = getUserData();
-      const btn = document.getElementById('send-btn-' + index);
-      if (btn) { btn.disabled = true; btn.textContent = 'Sending...'; }
-      
-      try {
-        const res = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendPhoto`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            chat_id: user.telegramId,
-            photo: data.image,
-            caption: data.text || '',
-            reply_markup: { inline_keyboard: [[{ text: data.buttonText || 'Open', url: data.clickUrl }]] }
-          })
-        });
-        
-        const result = await res.json();
-        if (result.ok) {
-          if (btn) { btn.textContent = '✅ Sent!'; }
-          setTimeout(() => { if (btn) { btn.textContent = '📨 Send to Bot'; btn.disabled = false; } }, 3000);
-        } else {
-          throw new Error(result.description || 'Failed');
-        }
-      } catch(e) {
-        alert('Error: ' + e.message);
-        if (btn) { btn.textContent = '📨 Send to Bot'; btn.disabled = false; }
-      }
-    }
-
+    // Check bot connection
     async function checkBot() {
       const status = document.getElementById('botStatus');
       try {
@@ -306,13 +261,198 @@
           status.style.color = '#fbbf24';
         }
       } catch(e) {
-        status.innerHTML = '❌ Cannot reach Telegram API';
-        status.style.color = '#f87171';
+        status.innerHTML = '⚠ Cannot verify bot (will still work for ads)';
+        status.style.color = '#fbbf24';
       }
     }
 
+    // Create widget for a placement
+    function createWidget(placement, index) {
+      const box = document.getElementById('ad-box-' + index);
+      if (!box) return;
+      
+      // Check if AdexiumWidget is available
+      if (typeof AdexiumWidget === 'undefined') {
+        box.innerHTML = '<div class="status-msg error">⚠ Adexium SDK not loaded</div>';
+        console.error('AdexiumWidget not available');
+        return;
+      }
+
+      try {
+        // Destroy existing widget if any
+        if (widgets[index]) {
+          try { widgets[index].destroy?.(); } catch(e) {}
+          delete widgets[index];
+        }
+
+        box.innerHTML = '<div class="status-msg loading"><div class="spinner"></div> Initializing widget...</div>';
+
+        // Create widget with CORRECT parameters from documentation
+        const widget = new AdexiumWidget({
+          wid: placement.wid,
+          adFormat: placement.format,
+          debug: false, // Set to true for testing
+          firstAdImpressionIntervalInSeconds: 5, // Show first ad after 5 seconds
+          adImpressionIntervalInSeconds: 100
+        });
+
+        widgets[index] = widget;
+        console.log(`✅ Widget created for ${placement.name}`);
+
+        // Listen for ad received event
+        widget.on('adReceived', (ad) => {
+          console.log(`📢 Ad received for ${placement.name}:`, ad);
+          adCache[index] = ad;
+          renderAdInBox(box, ad, placement, index);
+        });
+
+        // Listen for no ad found
+        widget.on('noAdFound', () => {
+          console.log(`📭 No ad found for ${placement.name}`);
+          box.innerHTML = '<div class="status-msg success">✅ Widget ready - waiting for ad...</div>';
+          box.classList.add('active');
+        });
+
+        // Listen for ad displayed
+        widget.on('adDisplayed', () => {
+          console.log(`👁 Ad displayed for ${placement.name}`);
+          box.classList.add('active');
+        });
+
+        // Listen for ad closed
+        widget.on('adClosed', () => {
+          console.log(`❌ Ad closed for ${placement.name}`);
+        });
+
+        // Listen for ad redirected (clicked)
+        widget.on('adRedirected', () => {
+          console.log(`🔗 Ad clicked for ${placement.name}`);
+        });
+
+        // Start auto mode
+        widget.autoMode();
+        console.log(`🚀 Auto mode started for ${placement.name}`);
+
+      } catch(e) {
+        console.error(`❌ Widget error for ${placement.name}:`, e);
+        box.innerHTML = `<div class="status-msg error">⚠ Error: ${e.message}</div>`;
+      }
+    }
+
+    // Render ad in the box manually
+    function renderAdInBox(box, ad, placement, index) {
+      if (!ad || !ad.creativeUrl) {
+        box.innerHTML = '<div class="status-msg success">✅ Ad received (no creative)</div>';
+        return;
+      }
+
+      box.innerHTML = `
+        <div class="ad-content">
+          <img src="${ad.creativeUrl}" alt="Ad" 
+               onerror="this.style.display='none'"
+               loading="lazy" />
+          <div class="ad-info">
+            <h3>${ad.title || 'Sponsored'}</h3>
+            ${ad.description ? `<p>${ad.description}</p>` : ''}
+            <a href="${ad.clickUrl || '#'}" target="_blank" class="ad-btn" 
+               onclick="window.Telegram?.WebApp?.openLink?.('${ad.clickUrl}')">
+              ${ad.buttonText || 'Open'}
+            </a>
+          </div>
+        </div>
+        <div class="debug-info">Ad ID: ${ad.id || 'N/A'} | Format: ${ad.adFormat || placement.format}</div>
+      `;
+      box.classList.add('active');
+    }
+
+    // Manual request ad for a placement
+    function requestAd(index) {
+      const widget = widgets[index];
+      const placement = placements[index];
+      const box = document.getElementById('ad-box-' + index);
+      
+      if (!widget) {
+        console.log('Widget not found, recreating...');
+        createWidget(placement, index);
+        return;
+      }
+
+      box.innerHTML = '<div class="status-msg loading"><div class="spinner"></div> Requesting ad...</div>';
+      
+      try {
+        widget.requestAd(placement.format);
+        console.log(`📡 Ad requested for ${placement.name}`);
+      } catch(e) {
+        console.error(`Error requesting ad for ${placement.name}:`, e);
+        box.innerHTML = `<div class="status-msg error">⚠ ${e.message}</div>`;
+      }
+    }
+
+    // Display ad manually
+    function showAd(index) {
+      const widget = widgets[index];
+      const ad = adCache[index];
+      
+      if (ad && widget) {
+        console.log('Displaying cached ad...');
+        widget.displayAd(ad);
+      } else {
+        console.log('No cached ad, requesting new one...');
+        requestAd(index);
+      }
+    }
+
+    // Send ad to user via bot
+    async function sendToBot(index) {
+      const ad = adCache[index];
+      if (!ad?.creativeUrl) {
+        alert('No ad available to send. Wait for an ad to load first.');
+        return;
+      }
+
+      const user = { telegramId: 'test123' };
+      try {
+        if (window.Telegram?.WebApp?.initDataUnsafe?.user) {
+          user.telegramId = String(window.Telegram.WebApp.initDataUnsafe.user.id);
+        }
+      } catch(e) {}
+
+      const btn = document.getElementById('send-btn-' + index);
+      if (btn) { btn.disabled = true; btn.textContent = '⏳ Sending...'; }
+
+      try {
+        const res = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendPhoto`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            chat_id: user.telegramId,
+            photo: ad.creativeUrl,
+            caption: `${ad.title || ''}\n\n${ad.description || ''}`,
+            reply_markup: {
+              inline_keyboard: [[{ text: ad.buttonText || 'Open', url: ad.clickUrl }]]
+            }
+          })
+        });
+
+        const result = await res.json();
+        if (result.ok) {
+          if (btn) { btn.textContent = '✅ Sent!'; }
+          setTimeout(() => { 
+            if (btn) { btn.textContent = '📨 Send to Bot'; btn.disabled = false; } 
+          }, 3000);
+        } else {
+          throw new Error(result.description || 'Failed');
+        }
+      } catch(e) {
+        alert('Send failed: ' + e.message);
+        if (btn) { btn.textContent = '📨 Send to Bot'; btn.disabled = false; }
+      }
+    }
+
+    // Render all placement cards
     function renderAll() {
       const container = document.getElementById('adsContainer');
+      
       container.innerHTML = placements.map((p, i) => `
         <div class="ad-card">
           <div class="ad-header">
@@ -320,34 +460,65 @@
             <span class="badge">active</span>
             <span class="format">${p.format}</span>
           </div>
-          <div class="wid">${p.wid}</div>
+          <code class="wid">${p.wid}</code>
           <div class="ad-box" id="ad-box-${i}">
-            <div class="loading">⏳ Loading...</div>
+            <div class="status-msg loading"><div class="spinner"></div> Loading...</div>
           </div>
-          <div class="buttons">
-            <button class="ad-btn" onclick="fetchAd(placements[${i}], ${i})">🔄 Reload</button>
-            <button class="ad-btn green" id="send-btn-${i}" onclick="sendToBot(${i})">📨 Send to Bot</button>
+          <div class="btn-row">
+            <button class="btn btn-reload" onclick="requestAd(${i})">🔄 Reload</button>
+            <button class="btn btn-show" onclick="showAd(${i})">👁 Show Ad</button>
+            <button class="btn btn-send" id="send-btn-${i}" onclick="sendToBot(${i})">📨 Send to Bot</button>
           </div>
-          <div class="status">${p.note}</div>
+          <div class="debug-info">${p.note}</div>
         </div>
       `).join('');
 
-      placements.forEach((p, i) => setTimeout(() => fetchAd(p, i), i * 1000));
+      // Initialize widgets for each placement
+      placements.forEach((p, i) => {
+        setTimeout(() => createWidget(p, i), i * 1000);
+      });
     }
 
-    window.fetchAd = fetchAd;
+    // Expose functions globally
+    window.requestAd = requestAd;
+    window.showAd = showAd;
     window.sendToBot = sendToBot;
-    window.placements = placements;
 
+    // Initialize
     async function init() {
-      if (window.Telegram?.WebApp) {
-        try { window.Telegram.WebApp.ready(); window.Telegram.WebApp.expand(); } catch(e) {}
-      }
+      console.log('🚀 Adexium Dashboard starting...');
+      console.log('AdexiumWidget available:', typeof AdexiumWidget !== 'undefined');
+      
       await checkBot();
       renderAll();
     }
 
-    document.addEventListener('DOMContentLoaded', init);
+    // Wait for AdexiumWidget to be available
+    function waitForSDK(callback) {
+      if (typeof AdexiumWidget !== 'undefined') {
+        callback();
+        return;
+      }
+      
+      console.log('⏳ Waiting for AdexiumWidget SDK...');
+      let attempts = 0;
+      const interval = setInterval(() => {
+        if (typeof AdexiumWidget !== 'undefined') {
+          clearInterval(interval);
+          console.log('✅ AdexiumWidget SDK loaded');
+          callback();
+        } else if (attempts >= 30) {
+          clearInterval(interval);
+          console.error('❌ AdexiumWidget SDK failed to load');
+          callback(); // Continue anyway
+        }
+        attempts++;
+      }, 500);
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      waitForSDK(init);
+    });
   </script>
 </body>
 </html>
