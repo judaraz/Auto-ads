@@ -51,24 +51,11 @@
       color: #94a3b8;
       background: transparent;
     }
-    .network-tab.active {
-      background: #3b82f6;
-      color: white;
-    }
-    .network-tab.adexium-tab.active {
-      background: #6366f1;
-    }
-    .network-tab.richads-tab.active {
-      background: #f59e0b;
-      color: #000;
-    }
+    .network-tab.adexium-tab.active { background: #6366f1; color: white; }
+    .network-tab.richads-tab.active { background: #f59e0b; color: #000; }
     
-    .network-section {
-      display: none;
-    }
-    .network-section.active {
-      display: block;
-    }
+    .network-section { display: none; }
+    .network-section.active { display: block; }
     
     .ad-card {
       background: #0f172a;
@@ -203,6 +190,8 @@
     .btn-reload:hover { background: #d97706; }
     .btn-show { background: #8b5cf6; }
     .btn-show:hover { background: #7c3aed; }
+    .btn-show-richads { background: #f59e0b; color: #000; }
+    .btn-show-richads:hover { background: #d97706; }
     .btn-send { background: #10b981; }
     .btn-send:hover { background: #059669; }
     .btn:disabled { opacity: 0.5; cursor: not-allowed; }
@@ -221,6 +210,19 @@
       letter-spacing: 1px;
       margin-bottom: 8px;
     }
+    .stats-row {
+      display: flex;
+      gap: 12px;
+      font-size: 10px;
+      color: #94a3b8;
+      margin-top: 4px;
+    }
+    .stat-item {
+      background: #1e293b;
+      padding: 2px 8px;
+      border-radius: 10px;
+    }
+    .stat-item.green { color: #10b981; }
     .note { font-size: 10px; color: #64748b; text-align: center; margin-top: 14px; }
     .bot-status {
       background: #1e293b;
@@ -230,12 +232,16 @@
       font-size: 11px;
       text-align: center;
     }
-    .richads-banner {
+    .richads-iframe-container {
       width: 100%;
-      min-height: 80px;
+      min-height: 100px;
       display: flex;
       align-items: center;
       justify-content: center;
+    }
+    .richads-iframe-container iframe {
+      width: 100%;
+      border: none;
     }
   </style>
 </head>
@@ -259,11 +265,11 @@
     
     <!-- RichAds Section -->
     <div class="network-section" id="richads-section">
-      <div class="network-label">🟡 RichAds Placements</div>
+      <div class="network-label">🟡 RichAds Placements (pubId: 1016054)</div>
       <div id="richadsContainer"></div>
     </div>
     
-    <div class="note">Switch between networks • Each widget operates independently</div>
+    <div class="note">Switch between networks • Click Show to display ads</div>
   </div>
 
   <script>
@@ -277,22 +283,30 @@
     ];
 
     // ============ RICHADS PLACEMENTS ============
+    const richadsPlacements = [
+      { id: "400684", name: "Telegram Playable ads", format: "playable", domain: "tempmail44.com", stats: { impressions: 0, clicks: 0, ctr: 0, cpm: 0, spend: 0 } },
+      { id: "400683", name: "Telegram Interstitial video", format: "interstitial-video", domain: "tempmail44.com", stats: { impressions: 0, clicks: 0, ctr: 0, cpm: 0, spend: 0 } },
+      { id: "400682", name: "Telegram Interstitial banner", format: "interstitial-banner", domain: "tempmail44.com", stats: { impressions: 3, clicks: 2, ctr: 66.67, cpm: 3.58, spend: 0.011 } },
+      { id: "400681", name: "Telegram Embedded banner", format: "embedded-banner", domain: "tempmail44.com", stats: { impressions: 0, clicks: 0, ctr: 0, cpm: 0, spend: 0 } },
+      { id: "400680", name: "Telegram Push-style", format: "push-style", domain: "tempmail44.com", stats: { impressions: 0, clicks: 0, ctr: 0, cpm: 0, spend: 0 } }
+    ];
+
     const richadsConfig = {
       pubId: "1016054",
       appId: "7952"
     };
 
-    // State management
+    // State
     const adexiumWidgets = {};
     const adexiumCache = {};
     const adexiumReloadCount = {};
-    let richadsInitialized = false;
+    const richadsWidgets = {};
+    const richadsCache = {};
+    let richadsController = null;
     let currentNetwork = 'adexium';
 
-    // Initialize counters
     adexiumPlacements.forEach((p, i) => { adexiumReloadCount[i] = 0; });
 
-    // ============ TELEGRAM WEBAPP INIT ============
     if (window.Telegram?.WebApp) {
       try {
         window.Telegram.WebApp.ready();
@@ -300,7 +314,6 @@
       } catch(e) {}
     }
 
-    // ============ BOT CHECK ============
     async function checkBot() {
       const status = document.getElementById('botStatus');
       try {
@@ -317,21 +330,11 @@
     // ============ NETWORK SWITCHING ============
     function switchNetwork(network) {
       currentNetwork = network;
-      
-      // Update tabs
       document.querySelectorAll('.network-tab').forEach(tab => tab.classList.remove('active'));
       document.querySelector(`.${network}-tab`).classList.add('active');
-      
-      // Update sections
       document.querySelectorAll('.network-section').forEach(section => section.classList.remove('active'));
       document.getElementById(`${network}-section`).classList.add('active');
-      
       console.log(`🔄 Switched to ${network}`);
-      
-      // Initialize RichAds if switching to it
-      if (network === 'richads' && !richadsInitialized) {
-        initRichAds();
-      }
     }
 
     // ============ ADEXIUM FUNCTIONS ============
@@ -341,12 +344,9 @@
       if (!box) return;
 
       adexiumReloadCount[index]++;
-      console.log(`🔄 [Adexium ${placement.name}] Reload #${adexiumReloadCount[index]}`);
-
       box.innerHTML = '<div class="status-msg loading"><div class="spinner"></div>Loading Adexium ad...</div>';
       box.classList.add('reloading');
 
-      // Destroy old widget
       if (adexiumWidgets[index]) {
         try {
           adexiumWidgets[index].off?.('adReceived', () => {});
@@ -357,13 +357,11 @@
       }
       delete adexiumCache[index];
 
-      // Create new widget
       setTimeout(() => {
         if (typeof AdexiumWidget === 'undefined') {
           box.innerHTML = '<div class="status-msg error">⚠ Adexium SDK not loaded</div>';
           return;
         }
-
         try {
           const widget = new AdexiumWidget({
             wid: placement.wid,
@@ -372,37 +370,26 @@
             firstAdImpressionIntervalInSeconds: 2,
             adImpressionIntervalInSeconds: 999999
           });
-
           adexiumWidgets[index] = widget;
           let adReceived = false;
 
           widget.on('adReceived', (ad) => {
             if (adReceived) return;
             adReceived = true;
-            console.log(`✅ [Adexium ${placement.name}] Ad received:`, ad.title);
             adexiumCache[index] = ad;
             renderAdexiumAd(box, ad, placement, index);
           });
-
           widget.on('noAdFound', () => {
-            if (!adReceived) {
-              box.innerHTML = '<div class="status-msg error">⚠ No ad available</div>';
-            }
+            if (!adReceived) box.innerHTML = '<div class="status-msg error">⚠ No ad available</div>';
           });
-
           widget.on('adDisplayed', () => {
             box.classList.add('active');
             box.classList.remove('reloading');
           });
-
           widget.autoMode();
-
           setTimeout(() => {
-            if (!adReceived && adexiumWidgets[index]) {
-              adexiumWidgets[index].requestAd(placement.format);
-            }
+            if (!adReceived && adexiumWidgets[index]) adexiumWidgets[index].requestAd(placement.format);
           }, 8000);
-
         } catch(e) {
           box.innerHTML = `<div class="status-msg error">⚠ ${e.message}</div>`;
         }
@@ -414,7 +401,6 @@
         box.innerHTML = '<div class="status-msg success">✅ Widget ready</div>';
         return;
       }
-
       const displayId = ad.id || Math.random().toString(36).substring(7);
       box.innerHTML = `
         <div class="ad-content">
@@ -444,14 +430,12 @@
     async function sendAdexiumToBot(index) {
       const ad = adexiumCache[index];
       if (!ad?.creativeUrl) { alert('No ad available'); return; }
-
       const user = { telegramId: 'test123' };
       try {
         if (window.Telegram?.WebApp?.initDataUnsafe?.user) {
           user.telegramId = String(window.Telegram.WebApp.initDataUnsafe.user.id);
         }
       } catch(e) {}
-
       try {
         await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendPhoto`, {
           method: 'POST',
@@ -489,149 +473,131 @@
           </div>
         </div>
       `).join('');
-
-      adexiumPlacements.forEach((p, i) => {
-        setTimeout(() => reloadAdexiumWidget(i), i * 800);
-      });
+      adexiumPlacements.forEach((p, i) => setTimeout(() => reloadAdexiumWidget(i), i * 800));
     }
 
     // ============ RICHADS FUNCTIONS ============
-    function initRichAds() {
-      console.log('🟡 Initializing RichAds...');
-      richadsInitialized = true;
-
+    function initRichAdsController() {
+      if (richadsController) return richadsController;
+      
       if (typeof TelegramAdsController === 'undefined') {
         console.error('RichAds SDK not loaded');
-        document.getElementById('richadsContainer').innerHTML = 
-          '<div class="ad-card"><div class="status-msg error">⚠ RichAds SDK not loaded</div></div>';
-        return;
+        return null;
       }
 
       try {
-        window.TelegramAdsController = new TelegramAdsController();
-        window.TelegramAdsController.initialize({
+        richadsController = new TelegramAdsController();
+        richadsController.initialize({
           pubId: richadsConfig.pubId,
           appId: richadsConfig.appId,
         });
-        console.log('✅ RichAds initialized');
-        renderRichAdsSection();
+        console.log('✅ RichAds controller initialized');
+        return richadsController;
       } catch(e) {
         console.error('RichAds init error:', e);
+        return null;
       }
+    }
+
+    function showRichAdsAd(index) {
+      const placement = richadsPlacements[index];
+      const box = document.getElementById('richads-box-' + index);
+      if (!box) return;
+
+      box.innerHTML = '<div class="status-msg loading"><div class="spinner"></div>Loading RichAds ad...</div>';
+      box.classList.add('reloading');
+
+      const controller = initRichAdsController();
+      if (!controller) {
+        box.innerHTML = '<div class="status-msg error">⚠ RichAds SDK not available</div>';
+        return;
+      }
+
+      // RichAds typically injects ads into containers
+      // We create a unique container for each placement
+      const adContainerId = 'richads-ad-' + index + '-' + Date.now();
+      box.innerHTML = `
+        <div class="richads-iframe-container" id="${adContainerId}">
+          <div class="status-msg loading"><div class="spinner"></div> RichAds loading...</div>
+        </div>
+        <div class="ad-id-display">🟡 RichAds | Placement #${placement.id} | ${placement.format}</div>
+      `;
+      
+      box.classList.add('active');
+      box.classList.remove('reloading');
+
+      // RichAds will automatically find and fill the container
+      setTimeout(() => {
+        const adContainer = document.getElementById(adContainerId);
+        if (adContainer && !adContainer.querySelector('iframe') && !adContainer.querySelector('img')) {
+          // If RichAds didn't fill it, show placeholder with placement info
+          adContainer.innerHTML = `
+            <div style="text-align:center;padding:20px;">
+              <div style="font-size:32px;margin-bottom:8px;">🟡</div>
+              <div style="font-size:13px;color:#f1f5f9;font-weight:600;">${placement.name}</div>
+              <div style="font-size:11px;color:#94a3b8;margin-top:4px;">Placement #${placement.id}</div>
+              <div style="font-size:10px;color:#64748b;margin-top:2px;">Format: ${placement.format}</div>
+              <button class="btn btn-show-richads" style="margin-top:10px;" onclick="showRichAdsAd(${index})">🔄 Retry</button>
+            </div>
+          `;
+        }
+      }, 4000);
+    }
+
+    function reloadRichAdsPlacement(index) {
+      const placement = richadsPlacements[index];
+      const box = document.getElementById('richads-box-' + index);
+      if (!box) return;
+      
+      console.log(`🔄 Reloading RichAds placement #${placement.id}`);
+      box.innerHTML = '<div class="status-msg loading"><div class="spinner"></div>Reloading...</div>';
+      
+      // Re-initialize controller and show ad
+      if (richadsController) {
+        try { richadsController.destroy?.(); } catch(e) {}
+        richadsController = null;
+      }
+      
+      setTimeout(() => showRichAdsAd(index), 500);
     }
 
     function renderRichAdsSection() {
       const container = document.getElementById('richadsContainer');
       
-      // RichAds typically shows ads in specific containers
-      container.innerHTML = `
+      container.innerHTML = richadsPlacements.map((p, i) => `
         <div class="ad-card">
           <div class="ad-header">
-            <span class="ad-title">RichAds Banner</span>
+            <span class="ad-title">${p.name}</span>
             <span class="badge richads">RichAds</span>
-            <span class="format">banner</span>
+            <span class="format">${p.format}</span>
           </div>
-          <code class="wid">Pub: ${richadsConfig.pubId} | App: ${richadsConfig.appId}</code>
-          <div class="ad-box active" id="richads-banner-1">
-            <div class="richads-banner" id="richads-ad-container-1">
-              <div class="status-msg loading"><div class="spinner"></div> RichAds loading...</div>
-            </div>
+          <code class="wid">#${p.id} • ${p.domain}</code>
+          <div class="stats-row">
+            <span class="stat-item">👁 ${p.stats.impressions}</span>
+            <span class="stat-item">👆 ${p.stats.clicks}</span>
+            <span class="stat-item ${p.stats.ctr > 0 ? 'green' : ''}">CTR ${p.stats.ctr}%</span>
+            <span class="stat-item">CPM $${p.stats.cpm}</span>
+            <span class="stat-item">💰 $${p.stats.spend}</span>
+          </div>
+          <div class="ad-box" id="richads-box-${i}">
+            <div class="status-msg success">✅ Ready - Click Show to display</div>
           </div>
           <div class="btn-row">
-            <button class="btn btn-reload" onclick="reloadRichAds()">🔄 Reload RichAds</button>
+            <button class="btn btn-show-richads" onclick="showRichAdsAd(${i})">👁 Show Ad</button>
+            <button class="btn btn-reload" onclick="reloadRichAdsPlacement(${i})">🔄 Reload</button>
           </div>
-          <div class="ad-id-display">🟡 RichAds Network</div>
+          <div class="ad-id-display">🟡 RichAds Placement #${p.id}</div>
         </div>
-        
-        <div class="ad-card">
-          <div class="ad-header">
-            <span class="ad-title">RichAds Interstitial</span>
-            <span class="badge richads">RichAds</span>
-            <span class="format">interstitial</span>
-          </div>
-          <code class="wid">Pub: ${richadsConfig.pubId} | App: ${richadsConfig.appId}</code>
-          <div class="ad-box active" id="richads-banner-2">
-            <div class="richads-banner" id="richads-ad-container-2">
-              <div class="status-msg loading"><div class="spinner"></div> RichAds loading...</div>
-            </div>
-          </div>
-          <div class="btn-row">
-            <button class="btn btn-reload" onclick="reloadRichAds()">🔄 Reload RichAds</button>
-          </div>
-          <div class="ad-id-display">🟡 RichAds Network</div>
-        </div>
+      `).join('');
 
-        <div class="ad-card">
-          <div class="ad-header">
-            <span class="ad-title">RichAds Native</span>
-            <span class="badge richads">RichAds</span>
-            <span class="format">native</span>
-          </div>
-          <code class="wid">Pub: ${richadsConfig.pubId} | App: ${richadsConfig.appId}</code>
-          <div class="ad-box active" id="richads-banner-3">
-            <div class="richads-banner" id="richads-ad-container-3">
-              <div class="status-msg loading"><div class="spinner"></div> RichAds loading...</div>
-            </div>
-          </div>
-          <div class="btn-row">
-            <button class="btn btn-reload" onclick="reloadRichAds()">🔄 Reload RichAds</button>
-          </div>
-          <div class="ad-id-display">🟡 RichAds Network</div>
-        </div>
-      `;
-
-      // Try to load RichAds into containers
-      setTimeout(() => {
-        try {
-          if (window.TelegramAdsController) {
-            // RichAds will automatically find and fill ad containers
-            console.log('🟡 RichAds controller active, ads should load automatically');
-            
-            // Update status
-            for (let i = 1; i <= 3; i++) {
-              const container = document.getElementById('richads-ad-container-' + i);
-              if (container && !container.querySelector('iframe')) {
-                container.innerHTML = '<div class="status-msg success">✅ RichAds ready</div>';
-              }
-            }
-          }
-        } catch(e) {
-          console.error('RichAds display error:', e);
-        }
-      }, 3000);
-    }
-
-    function reloadRichAds() {
-      console.log('🔄 Reloading RichAds...');
-      richadsInitialized = false;
-      
-      // Clear containers
-      for (let i = 1; i <= 3; i++) {
-        const container = document.getElementById('richads-ad-container-' + i);
-        if (container) {
-          container.innerHTML = '<div class="status-msg loading"><div class="spinner"></div> Reloading...</div>';
-        }
-      }
-      
-      // Re-initialize
-      setTimeout(() => initRichAds(), 500);
+      // Initialize RichAds controller
+      initRichAdsController();
     }
 
     // ============ INITIALIZATION ============
     function renderAll() {
       renderAdexiumSection();
-      // RichAds section will render when switched to
-      const richadsContainer = document.getElementById('richadsContainer');
-      if (richadsContainer) {
-        richadsContainer.innerHTML = `
-          <div class="ad-card">
-            <div class="status-msg loading">
-              <div class="spinner"></div>
-              Switch to RichAds tab to initialize
-            </div>
-          </div>
-        `;
-      }
+      renderRichAdsSection();
     }
 
     // Expose globally
@@ -639,13 +605,13 @@
     window.reloadAdexiumWidget = reloadAdexiumWidget;
     window.showAdexiumAd = showAdexiumAd;
     window.sendAdexiumToBot = sendAdexiumToBot;
-    window.reloadRichAds = reloadRichAds;
+    window.showRichAdsAd = showRichAdsAd;
+    window.reloadRichAdsPlacement = reloadRichAdsPlacement;
 
     async function init() {
       console.log('🚀 Ad Dashboard - Adexium + RichAds');
       console.log('AdexiumWidget:', typeof AdexiumWidget);
       console.log('TelegramAdsController:', typeof TelegramAdsController);
-      
       await checkBot();
       renderAll();
     }
