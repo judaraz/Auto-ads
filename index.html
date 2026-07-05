@@ -3,11 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title>Adexium · placements dashboard</title>
-  <!-- Telegram Web App script (optional but recommended for mini app context) -->
+  <title>Adexium · Placements Dashboard</title>
   <script src="https://telegram.org/js/telegram-web-app.js?56"></script>
-  <!-- Adexium widget core -->
-  <script type="text/javascript" src="https://cdn.tgads.space/assets/js/adexium-widget.min.js"></script>
   <style>
     * {
       margin: 0;
@@ -17,206 +14,315 @@
     body {
       background: #0f172a;
       font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
-      padding: 1.25rem;
+      padding: 1rem;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
       min-height: 100vh;
-      margin: 0;
       color: #e2e8f0;
     }
     .dashboard {
-      max-width: 700px;
+      max-width: 650px;
       width: 100%;
-      background: rgba(15, 23, 42, 0.9);
+      background: rgba(15, 23, 42, 0.95);
       backdrop-filter: blur(18px);
       -webkit-backdrop-filter: blur(18px);
       border: 1px solid rgba(71, 85, 105, 0.4);
-      border-radius: 2.5rem;
-      padding: 1.8rem 1.5rem 2.2rem;
+      border-radius: 2rem;
+      padding: 1.5rem;
       box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
     }
     h1 {
       font-weight: 600;
-      font-size: 1.9rem;
+      font-size: 1.8rem;
       letter-spacing: -0.5px;
       display: flex;
       align-items: center;
       gap: 0.5rem;
-      margin-bottom: 1.8rem;
+      margin-bottom: 1.5rem;
       color: #f1f5f9;
       border-bottom: 1px solid #334155;
-      padding-bottom: 0.9rem;
+      padding-bottom: 0.8rem;
     }
     h1 span {
       background: #3b82f6;
       padding: 0.2rem 0.7rem;
       border-radius: 2rem;
-      font-size: 0.9rem;
+      font-size: 0.85rem;
       font-weight: 500;
       color: white;
-      margin-left: 0.5rem;
     }
     .placement-grid {
       display: flex;
       flex-direction: column;
-      gap: 1.5rem;
-      margin: 1.8rem 0 1.2rem;
+      gap: 1.2rem;
     }
     .card {
       background: #1e293b;
-      border-radius: 1.8rem;
-      padding: 1.4rem 1.4rem 1.2rem;
+      border-radius: 1.5rem;
+      padding: 1.2rem;
       border: 1px solid #334155;
       transition: all 0.2s ease;
-      box-shadow: 0 10px 20px -8px rgba(0,0,0,0.4);
-      display: flex;
-      flex-direction: column;
+      box-shadow: 0 8px 16px -8px rgba(0,0,0,0.4);
     }
     .card:hover {
       border-color: #475569;
-      background: #1e293b;
     }
     .card-header {
       display: flex;
       justify-content: space-between;
-      align-items: flex-start;
-      margin-bottom: 0.7rem;
+      align-items: center;
+      margin-bottom: 0.5rem;
+      flex-wrap: wrap;
+      gap: 0.5rem;
     }
     .placement-name {
       font-weight: 650;
-      font-size: 1.4rem;
+      font-size: 1.3rem;
       color: #f8fafc;
       display: flex;
       align-items: center;
-      gap: 0.5rem;
+      gap: 0.4rem;
       flex-wrap: wrap;
     }
     .badge {
-      background: #059669;
-      color: white;
-      font-size: 0.7rem;
-      font-weight: 600;
-      padding: 0.2rem 0.7rem;
-      border-radius: 30px;
-      letter-spacing: 0.3px;
       background: #10b981;
+      color: white;
+      font-size: 0.65rem;
+      font-weight: 600;
+      padding: 0.15rem 0.6rem;
+      border-radius: 20px;
     }
     .format-badge {
-      background: #2563eb;
+      background: #6366f1;
       color: white;
-      font-size: 0.7rem;
+      font-size: 0.65rem;
       font-weight: 600;
-      padding: 0.2rem 0.8rem;
+      padding: 0.15rem 0.6rem;
       border-radius: 20px;
       text-transform: uppercase;
-      margin-left: 0.3rem;
     }
     .meta {
-      font-size: 0.8rem;
+      font-size: 0.75rem;
       color: #94a3b8;
       display: flex;
       flex-wrap: wrap;
       align-items: center;
-      gap: 0.6rem;
-      margin: 0.5rem 0 0.9rem;
+      gap: 0.5rem;
+      margin: 0.4rem 0 0.6rem;
     }
     .wid {
-      font-family: 'Fira Code', monospace;
+      font-family: 'Courier New', monospace;
       background: #0f172a;
       padding: 0.2rem 0.5rem;
-      border-radius: 12px;
-      font-size: 0.7rem;
+      border-radius: 10px;
+      font-size: 0.65rem;
       color: #a5b4fc;
       word-break: break-all;
     }
     .link {
       color: #7dd3fc;
       text-decoration: none;
-      border-bottom: 1px dashed #7dd3fc;
-      font-size: 0.8rem;
+      font-size: 0.75rem;
+    }
+    .link:hover {
+      text-decoration: underline;
     }
     .status-row {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      margin-top: 0.4rem;
+      margin: 0.3rem 0;
+      flex-wrap: wrap;
+      gap: 0.4rem;
+      font-size: 0.7rem;
     }
     .active-dot {
       display: flex;
       align-items: center;
-      gap: 0.3rem;
-      font-size: 0.8rem;
+      gap: 0.25rem;
       color: #86efac;
     }
     .active-dot::before {
       content: "";
-      width: 8px;
-      height: 8px;
+      width: 7px;
+      height: 7px;
       background: #22c55e;
       border-radius: 50%;
       display: inline-block;
-      box-shadow: 0 0 8px #22c55e;
+      box-shadow: 0 0 6px #22c55e;
     }
     .request-info {
-      font-size: 0.7rem;
       color: #94a3b8;
+      font-size: 0.7rem;
     }
+    
+    /* AD DISPLAY AREA */
+    .ad-display {
+      margin: 0.8rem 0 0.5rem;
+      background: #0f172a;
+      border-radius: 1rem;
+      overflow: hidden;
+      border: 1px solid #1e293b;
+      min-height: 80px;
+      position: relative;
+    }
+    .ad-content {
+      padding: 0.8rem;
+      display: flex;
+      gap: 0.8rem;
+      align-items: flex-start;
+    }
+    .ad-image {
+      width: 100px;
+      height: 100px;
+      border-radius: 0.8rem;
+      object-fit: cover;
+      background: #1e293b;
+      flex-shrink: 0;
+      border: 1px solid #334155;
+    }
+    .ad-text-content {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+    .ad-title {
+      font-weight: 600;
+      font-size: 0.9rem;
+      color: #f1f5f9;
+      line-height: 1.3;
+    }
+    .ad-description {
+      font-size: 0.75rem;
+      color: #94a3b8;
+      line-height: 1.4;
+    }
+    .ad-button {
+      display: inline-block;
+      background: linear-gradient(135deg, #3b82f6, #6366f1);
+      color: white;
+      padding: 0.5rem 1.2rem;
+      border-radius: 2rem;
+      text-decoration: none;
+      font-size: 0.8rem;
+      font-weight: 600;
+      text-align: center;
+      transition: all 0.2s;
+      align-self: flex-start;
+      border: none;
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+    }
+    .ad-button:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 6px 16px rgba(59, 130, 246, 0.5);
+    }
+    .ad-button:active {
+      transform: scale(0.97);
+    }
+    
+    /* AD STATUS */
+    .ad-status {
+      padding: 1.5rem;
+      text-align: center;
+      font-size: 0.8rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+    }
+    .ad-status.loading { color: #fbbf24; }
+    .ad-status.success { color: #86efac; }
+    .ad-status.error { color: #fca5a5; }
+    .ad-status.empty { color: #64748b; }
+    
+    .spinner {
+      width: 18px;
+      height: 18px;
+      border: 2px solid #334155;
+      border-top: 2px solid #fbbf24;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      display: inline-block;
+    }
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    
     button {
-      background: #3b82f6;
+      background: #2563eb;
       border: none;
       color: white;
       font-weight: 550;
-      padding: 0.7rem 1.3rem;
-      border-radius: 2.5rem;
-      font-size: 0.9rem;
+      padding: 0.6rem 1.2rem;
+      border-radius: 2rem;
+      font-size: 0.85rem;
       cursor: pointer;
       display: flex;
       align-items: center;
       justify-content: center;
       gap: 0.3rem;
-      background: #2563eb;
-      transition: 0.2s;
-      margin-top: 0.7rem;
+      transition: all 0.2s;
+      margin-top: 0.5rem;
       width: fit-content;
-      letter-spacing: 0.3px;
       border: 1px solid #3b82f6;
-      box-shadow: 0 4px 12px rgba(37,99,235,0.4);
+      box-shadow: 0 4px 12px rgba(37,99,235,0.3);
     }
     button:hover {
       background: #1d4ed8;
-      border-color: #60a5fa;
+      box-shadow: 0 6px 16px rgba(37,99,235,0.5);
     }
-    .ad-container {
-      margin-top: 0.9rem;
-      min-height: 50px;
-      background: #0f172a;
-      border-radius: 1rem;
-      padding: 0.5rem;
-      border: 1px dashed #334155;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      transition: 0.2s;
+    button:active {
+      transform: scale(0.97);
     }
+    button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+    
     .auto-note {
-      font-size: 0.75rem;
+      font-size: 0.7rem;
       color: #fbbf24;
-      margin-top: 0.8rem;
+      margin-top: 1rem;
+      padding: 0.5rem 0.8rem;
+      border-radius: 0.8rem;
+      background: rgba(251, 191, 36, 0.1);
+      border: 1px solid rgba(251, 191, 36, 0.2);
       display: flex;
       align-items: center;
-      gap: 0.3rem;
-    }
-    hr {
-      border-color: #2d3a4f;
-      margin: 1.4rem 0 0.8rem;
+      gap: 0.4rem;
     }
     .footer-note {
       font-size: 0.7rem;
       color: #64748b;
       text-align: center;
-      margin-top: 1rem;
+      margin-top: 0.8rem;
+    }
+    .integration-note {
+      font-size: 0.65rem;
+      color: #64748b;
+      margin-top: 0.3rem;
+      font-style: italic;
+    }
+    
+    /* Bot info banner */
+    .bot-info {
+      background: rgba(99, 102, 241, 0.15);
+      border: 1px solid rgba(99, 102, 241, 0.3);
+      border-radius: 1rem;
+      padding: 0.6rem 1rem;
+      margin-bottom: 1.2rem;
+      font-size: 0.75rem;
+      color: #a5b4fc;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .bot-info .bot-icon {
+      font-size: 1.2rem;
     }
   </style>
 </head>
@@ -226,21 +332,30 @@
       📡 Adexium
       <span>my placements</span>
     </h1>
+    
+    <!-- Bot connection status -->
+    <div class="bot-info" id="botInfo">
+      <span class="bot-icon">🤖</span>
+      <span id="botStatus">Connecting to bot...</span>
+    </div>
+    
     <div class="placement-grid" id="placementGrid">
-      <!-- Dynamic cards will be injected via JS, but we also use static structure for clarity. 
-           We'll generate from data to keep ads auto-initialized. -->
+      <!-- Cards rendered by JavaScript -->
     </div>
     <div class="auto-note">
-      <span>⚡ Ads appear automatically · click card button to reload</span>
+      <span>💡</span> Ads fetch automatically via Adexium API. Click "Reload Ad" to refresh.
     </div>
     <div class="footer-note">
-      Telegram Mini App · real users only
+      Telegram Bot · Real users only · No automated accounts
     </div>
   </div>
 
   <script>
     (function() {
-      // ----- Placement data based on provided information -----
+      // ============ CONFIGURATION ============
+      const BOT_TOKEN = '8730973868:AAGJjqGwN5wpNjlcqb6L335VRZZhvo4u8Uc';
+      
+      // ============ PLACEMENT DATA ============
       const placements = [
         {
           id: "12002",
@@ -274,67 +389,10 @@
         }
       ];
 
-      // Store widget instances to manage them
-      const widgetInstances = {};
+      // Store fetched ad data
+      const adCache = {};
 
-      // Function to render all placement cards
-      function renderPlacements() {
-        const grid = document.getElementById('placementGrid');
-        if (!grid) return;
-        grid.innerHTML = '';
-
-        placements.forEach((p, index) => {
-          const card = document.createElement('div');
-          card.className = 'card';
-          card.dataset.wid = p.wid;
-          card.dataset.index = index;
-          card.dataset.format = p.adFormat;
-
-          // Build card content
-          card.innerHTML = `
-            <div class="card-header">
-              <div class="placement-name">
-                ${escapeHtml(p.name)}
-                <span class="badge">active</span>
-                <span class="format-badge">${escapeHtml(p.adFormat)}</span>
-              </div>
-            </div>
-            <div class="meta">
-              <span class="wid">${escapeHtml(p.wid)}</span>
-              <a href="${escapeHtml(p.link)}" target="_blank" class="link" rel="noopener noreferrer">🔗 mini app link</a>
-            </div>
-            <div class="status-row">
-              <span class="active-dot">${escapeHtml(p.status)}</span>
-              <span class="request-info">${escapeHtml(p.lastRequest)}</span>
-            </div>
-            <div class="ad-container" id="ad-container-${index}">
-              <!-- Adexium ad will be injected here dynamically -->
-              <span style="color:#64748b; font-size:0.8rem;">⏳ ad loading...</span>
-            </div>
-            <button class="reload-ad-btn" data-index="${index}">
-              <span>🔄</span> Show / Reload ad
-            </button>
-            <div style="font-size:0.7rem; color:#94a3b8; margin-top:0.4rem;">${escapeHtml(p.integrationNote)}</div>
-          `;
-
-          grid.appendChild(card);
-        });
-
-        // After DOM update, initialize all ad widgets automatically
-        initializeAllWidgets();
-
-        // Attach event listeners to reload buttons
-        document.querySelectorAll('.reload-ad-btn').forEach(btn => {
-          btn.addEventListener('click', function(e) {
-            const index = this.dataset.index;
-            if (index !== undefined) {
-              reloadPlacementAd(index);
-            }
-          });
-        });
-      }
-
-      // Simple escape utility
+      // ============ UTILITY FUNCTIONS ============
       function escapeHtml(text) {
         if (!text) return '';
         return String(text)
@@ -345,156 +403,401 @@
           .replace(/'/g, '&#039;');
       }
 
-      // Initialize Adexium widget for a specific placement index
-      function initializeWidgetForIndex(index) {
-        const placement = placements[index];
-        if (!placement) return null;
-
-        const containerId = `ad-container-${index}`;
-        const container = document.getElementById(containerId);
-        if (!container) return null;
-
-        // Clear previous content (keep placeholder minimal)
-        container.innerHTML = ''; 
-
-        // Check if AdexiumWidget is available
-        if (typeof AdexiumWidget === 'undefined') {
-          console.warn('AdexiumWidget not loaded yet');
-          container.innerHTML = '<span style="color:#f87171;">Adexium script missing</span>';
-          return null;
-        }
+      // Get Telegram user data from WebApp
+      function getTelegramUserData() {
+        const userData = {
+          telegramId: 'unknown',
+          firstName: 'User',
+          language: 'en',
+          isPremium: false
+        };
 
         try {
-          // Destroy previous instance if exists for this index to avoid duplicates
-          if (widgetInstances[index]) {
-            // Adexium might not have public destroy, but we can try to clean container
-            // and remove old instance reference. We'll set container empty.
-            if (widgetInstances[index].destroy && typeof widgetInstances[index].destroy === 'function') {
-              widgetInstances[index].destroy();
-            }
-            delete widgetInstances[index];
-          }
-
-          // Create new widget instance with WID and adFormat
-          const widget = new AdexiumWidget({
-            wid: placement.wid,
-            adFormat: placement.adFormat
-          });
-
-          // Store instance
-          widgetInstances[index] = widget;
-
-          // Use autoMode() to automatically show ads (as requested: automatic showing)
-          // According to Adexium docs, autoMode() renders the ad inside the widget's container.
-          // However, AdexiumWidget might attach to body or need a target. 
-          // We can call autoMode() and it should display ad. But to ensure it appears inside our container,
-          // we might need to pass a selector or mount point. Adexium documentation suggests that 
-          // autoMode() places the ad automatically. Some versions allow .render(containerId).
-          // We'll attempt to use .render() if available, else rely on autoMode and move element.
-          
-          if (typeof widget.render === 'function') {
-            // Try to render directly into container
-            widget.render(containerId);
-          } else {
-            // Fallback: call autoMode and then try to append the created element to our container.
-            widget.autoMode();
+          if (window.Telegram && window.Telegram.WebApp) {
+            const webApp = window.Telegram.WebApp;
+            const user = webApp.initDataUnsafe?.user;
             
-            // After a short delay, look for Adexium iframe/element and move it into container
-            setTimeout(() => {
-              const adElement = document.querySelector('.adexium-widget, .adexium-ad, [data-adexium]');
-              if (adElement && container.children.length === 0) {
-                container.appendChild(adElement);
-              } else if (container.children.length === 0) {
-                // If no element found, observe mutations or keep placeholder
-                container.innerHTML = '<span style="color:#fbbf24;">🔄 ad request sent</span>';
-              }
-            }, 300);
+            if (user) {
+              userData.telegramId = String(user.id || 'unknown');
+              userData.firstName = user.first_name || 'User';
+              userData.language = user.language_code || 'en';
+              userData.isPremium = user.is_premium || false;
+            }
+            
+            console.log('📱 Telegram user data:', userData);
+          } else {
+            console.warn('⚠ Not running inside Telegram Mini App');
           }
+        } catch (e) {
+          console.warn('Could not get Telegram user data:', e);
+        }
 
-          console.log(`Adexium widget initialized for ${placement.name} (${placement.wid})`);
-          return widget;
-        } catch (error) {
-          console.error('Error initializing Adexium widget:', error);
-          container.innerHTML = '<span style="color:#f87171;">widget error</span>';
-          return null;
+        return userData;
+      }
+
+      // Update bot status in UI
+      function updateBotStatus(message, isError = false) {
+        const statusElement = document.getElementById('botStatus');
+        if (statusElement) {
+          statusElement.textContent = message;
+          statusElement.style.color = isError ? '#fca5a5' : '#a5b4fc';
         }
       }
 
-      // Initialize all widgets automatically
-      function initializeAllWidgets() {
-        placements.forEach((_, idx) => {
-          // Small delay to ensure DOM is fully ready and containers exist
+      // ============ VERIFY BOT CONNECTION ============
+      async function verifyBotConnection() {
+        try {
+          console.log('🤖 Verifying bot connection...');
+          const response = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/getMe`);
+          const data = await response.json();
+          
+          if (data.ok) {
+            console.log('✅ Bot connected:', data.result);
+            updateBotStatus(`✅ Connected to @${data.result.username}`);
+            return true;
+          } else {
+            console.error('❌ Bot verification failed:', data);
+            updateBotStatus('❌ Invalid bot token', true);
+            return false;
+          }
+        } catch (error) {
+          console.error('❌ Bot connection error:', error);
+          updateBotStatus('❌ Cannot connect to Telegram API', true);
+          return false;
+        }
+      }
+
+      // ============ FETCH AD FROM ADEXIUM API ============
+      async function fetchAd(placement, index) {
+        const containerId = `ad-container-${index}`;
+        const container = document.getElementById(containerId);
+        
+        if (!container) return;
+
+        // Show loading state
+        container.innerHTML = `
+          <div class="ad-status loading">
+            <span class="spinner"></span> Fetching ad from Adexium...
+          </div>
+        `;
+
+        const userData = getTelegramUserData();
+
+        try {
+          console.log(`📡 Fetching ad for ${placement.name} (WID: ${placement.wid})`);
+          console.log('👤 User data:', userData);
+
+          const response = await fetch('https://bid.tgads.live/bot-request', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              wid: placement.wid,
+              language: userData.language,
+              isPremium: userData.isPremium,
+              firstName: userData.firstName,
+              telegramId: userData.telegramId
+            })
+          });
+
+          console.log(`📥 Response status for ${placement.name}:`, response.status);
+
+          if (!response.ok) {
+            const errorText = await response.text();
+            throw new Error(`HTTP ${response.status}: ${errorText || response.statusText}`);
+          }
+
+          const adData = await response.json();
+          console.log(`✅ Ad data for ${placement.name}:`, adData);
+
+          // Cache the ad data
+          adCache[index] = {
+            data: adData,
+            timestamp: Date.now(),
+            placement: placement
+          };
+
+          // Render the ad
+          renderAd(container, adData, placement, index);
+
+          // Optionally send ad to user via bot (if they want to receive it in chat)
+          if (userData.telegramId !== 'unknown') {
+            console.log('📨 Ad can be sent to user via bot');
+            // Uncomment below to auto-send ad to user via bot
+            // await sendAdToUserViaBot(adData, userData.telegramId);
+          }
+
+        } catch (error) {
+          console.error(`❌ Error fetching ad for ${placement.name}:`, error);
+          
+          // Show error state
+          container.innerHTML = `
+            <div class="ad-status error">
+              ⚠️ ${error.message || 'Failed to load ad'}
+            </div>
+          `;
+        }
+      }
+
+      // ============ SEND AD TO USER VIA TELEGRAM BOT ============
+      async function sendAdToUserViaBot(adData, chatId, index) {
+        try {
+          console.log(`📨 Sending ad to user ${chatId} via bot...`);
+          
+          // Prepare the inline keyboard with the ad button
+          const inlineKeyboard = {
+            inline_keyboard: [[
+              {
+                text: adData.buttonText || 'Go!',
+                url: adData.clickUrl
+              }
+            ]]
+          };
+
+          // Send photo with caption and inline button
+          const response = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendPhoto`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              chat_id: chatId,
+              photo: adData.image,
+              caption: adData.text || '',
+              reply_markup: inlineKeyboard
+            })
+          });
+
+          const result = await response.json();
+          
+          if (result.ok) {
+            console.log('✅ Ad sent to user successfully');
+            
+            // Update button state
+            const button = document.getElementById(`send-bot-btn-${index}`);
+            if (button) {
+              button.textContent = '✅ Sent to Bot';
+              button.disabled = true;
+              setTimeout(() => {
+                button.textContent = '📨 Send to Bot';
+                button.disabled = false;
+              }, 3000);
+            }
+            
+            return true;
+          } else {
+            console.error('❌ Failed to send ad to user:', result);
+            return false;
+          }
+        } catch (error) {
+          console.error('❌ Error sending ad to user:', error);
+          return false;
+        }
+      }
+
+      // ============ RENDER AD IN CONTAINER ============
+      function renderAd(container, adData, placement, index) {
+        if (!adData || !adData.image) {
+          container.innerHTML = `
+            <div class="ad-status empty">
+              📭 No ad available for this placement
+            </div>
+          `;
+          return;
+        }
+
+        const adHtml = `
+          <div class="ad-content">
+            <img 
+              src="${escapeHtml(adData.image)}" 
+              alt="Ad" 
+              class="ad-image"
+              onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%22100%22 height=%22100%22><rect fill=%22%23334155%22 width=%22100%22 height=%22100%22/><text fill=%22%2394a3b8%22 x=%2250%25%22 y=%2250%25%22 text-anchor=%22middle%22 dy=%22.3em%22 font-size=%2212%22>No Image</text></svg>'"
+              loading="lazy"
+            />
+            <div class="ad-text-content">
+              ${adData.text ? `<div class="ad-title">${escapeHtml(adData.text)}</div>` : ''}
+              ${adData.description ? `<div class="ad-description">${escapeHtml(adData.description)}</div>` : ''}
+              <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                <a 
+                  href="${escapeHtml(adData.clickUrl || '#')}" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  class="ad-button"
+                  onclick="console.log('Ad clicked: ${adData.id}'); window.Telegram?.WebApp?.openLink?.('${escapeHtml(adData.clickUrl)}');"
+                >
+                  ${escapeHtml(adData.buttonText || 'Learn More')}
+                </a>
+                <button 
+                  class="ad-button" 
+                  style="background: linear-gradient(135deg, #059669, #10b981);"
+                  id="send-bot-btn-${index}"
+                  onclick="window.sendAdToBot(${index})"
+                >
+                  📨 Send to Bot
+                </button>
+              </div>
+            </div>
+          </div>
+        `;
+
+        container.innerHTML = adHtml;
+        console.log(`🎨 Ad rendered for ${placement.name}`);
+      }
+
+      // ============ RENDER PLACEMENT CARDS ============
+      function renderPlacements() {
+        const grid = document.getElementById('placementGrid');
+        if (!grid) return;
+
+        grid.innerHTML = '';
+
+        placements.forEach((placement, index) => {
+          const card = document.createElement('div');
+          card.className = 'card';
+          card.id = `placement-card-${index}`;
+
+          card.innerHTML = `
+            <div class="card-header">
+              <div class="placement-name">
+                ${escapeHtml(placement.name)}
+                <span class="badge">${escapeHtml(placement.status)}</span>
+                <span class="format-badge">${escapeHtml(placement.adFormat)}</span>
+              </div>
+            </div>
+            <div class="meta">
+              <span class="wid">${escapeHtml(placement.wid)}</span>
+              <a href="${escapeHtml(placement.link)}" target="_blank" class="link" rel="noopener noreferrer">🔗 mini app link</a>
+            </div>
+            <div class="status-row">
+              <span class="active-dot">${escapeHtml(placement.status)}</span>
+              <span class="request-info">${escapeHtml(placement.lastRequest)}</span>
+            </div>
+            <div class="ad-display" id="ad-container-${index}">
+              <div class="ad-status loading">
+                <span class="spinner"></span> Loading ad...
+              </div>
+            </div>
+            <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+              <button onclick="window.reloadAd(${index})" id="reload-btn-${index}">
+                <span>🔄</span> Reload Ad
+              </button>
+            </div>
+            <div class="integration-note">${escapeHtml(placement.integrationNote)}</div>
+          `;
+
+          grid.appendChild(card);
+        });
+
+        // Fetch ads for all placements
+        fetchAllAds();
+      }
+
+      // ============ FETCH ALL ADS ============
+      function fetchAllAds() {
+        placements.forEach((placement, index) => {
+          // Stagger requests to avoid rate limiting
           setTimeout(() => {
-            initializeWidgetForIndex(idx);
-          }, 100 + idx * 50);
+            fetchAd(placement, index);
+          }, index * 800);
         });
       }
 
-      // Reload a specific placement ad (re-initialize)
-      function reloadPlacementAd(index) {
+      // ============ RELOAD SINGLE AD ============
+      window.reloadAd = function(index) {
         const placement = placements[index];
         if (!placement) return;
-        
-        const container = document.getElementById(`ad-container-${index}`);
-        if (container) {
-          container.innerHTML = '<span style="color:#94a3b8;">🔄 reloading ad...</span>';
-        }
-        
-        // Destroy previous instance if any
-        if (widgetInstances[index]) {
-          try {
-            if (typeof widgetInstances[index].destroy === 'function') {
-              widgetInstances[index].destroy();
-            }
-          } catch (e) {}
-          delete widgetInstances[index];
-        }
-        
-        // Re-initialize after short delay
-        setTimeout(() => {
-          initializeWidgetForIndex(index);
-        }, 150);
-      }
 
-      // Additional safety: ensure AdexiumWidget is available after script load
-      function waitForAdexiumThenInit() {
-        if (typeof AdexiumWidget !== 'undefined') {
-          renderPlacements();
-        } else {
-          // Check every 200ms until available
-          let attempts = 0;
-          const maxAttempts = 30;
-          const interval = setInterval(() => {
-            if (typeof AdexiumWidget !== 'undefined') {
-              clearInterval(interval);
-              renderPlacements();
-            } else if (attempts >= maxAttempts) {
-              clearInterval(interval);
-              console.error('AdexiumWidget not available after waiting');
-              // Still render UI without ads maybe
-              renderPlacements();
-            }
-            attempts++;
-          }, 200);
+        const button = document.getElementById(`reload-btn-${index}`);
+        
+        // Disable button briefly
+        if (button) {
+          button.disabled = true;
+          setTimeout(() => {
+            if (button) button.disabled = false;
+          }, 2000);
         }
-      }
 
-      // Start process when DOM is ready
-      window.addEventListener('DOMContentLoaded', () => {
-        // Telegram Web App ready (optional)
+        // Clear cache for this ad
+        delete adCache[index];
+
+        // Fetch fresh ad
+        fetchAd(placement, index);
+      };
+
+      // ============ SEND AD TO BOT ============
+      window.sendAdToBot = async function(index) {
+        const cached = adCache[index];
+        if (!cached || !cached.data) {
+          alert('No ad data available. Please reload first.');
+          return;
+        }
+
+        const userData = getTelegramUserData();
+        
+        if (userData.telegramId === 'unknown') {
+          alert('Cannot send: User ID not available. Are you in Telegram?');
+          return;
+        }
+
+        const button = document.getElementById(`send-bot-btn-${index}`);
+        if (button) {
+          button.disabled = true;
+          button.textContent = '⏳ Sending...';
+        }
+
+        const success = await sendAdToUserViaBot(cached.data, userData.telegramId, index);
+        
+        if (!success && button) {
+          button.disabled = false;
+          button.textContent = '📨 Send to Bot';
+          alert('Failed to send ad. Check console for details.');
+        }
+      };
+
+      // ============ INITIALIZATION ============
+      async function init() {
+        console.log('🚀 Initializing Adexium Dashboard with Bot Integration');
+        console.log('🤖 Bot Token:', BOT_TOKEN.substring(0, 10) + '...');
+        console.log('📋 Placements:', placements.length);
+        
+        // Initialize Telegram WebApp
         if (window.Telegram && window.Telegram.WebApp) {
-          window.Telegram.WebApp.ready();
-          window.Telegram.WebApp.expand();
+          try {
+            window.Telegram.WebApp.ready();
+            window.Telegram.WebApp.expand();
+            console.log('✅ Telegram WebApp initialized');
+          } catch (e) {
+            console.warn('Telegram WebApp init error:', e);
+          }
+        } else {
+          console.log('ℹ️ Not in Telegram Mini App - some features limited');
         }
-        waitForAdexiumThenInit();
-      });
 
-      // If script loads after DOMContentLoaded, still attempt
-      if (document.readyState === 'complete' || document.readyState === 'interactive') {
-        setTimeout(() => {
-          waitForAdexiumThenInit();
-        }, 50);
+        // Verify bot connection
+        const botConnected = await verifyBotConnection();
+        
+        if (!botConnected) {
+          updateBotStatus('⚠️ Bot connection failed. Ads will still load but cannot be sent to users.', true);
+        }
+
+        // Render placements and fetch ads
+        renderPlacements();
       }
+
+      // Start when DOM is ready
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', init);
+      } else {
+        init();
+      }
+
+      // Expose for debugging
+      window.adCache = adCache;
+      window.placements = placements;
+      window.BOT_TOKEN = BOT_TOKEN;
+      console.log('✅ Adexium Dashboard with Bot Integration loaded');
     })();
   </script>
 </body>
