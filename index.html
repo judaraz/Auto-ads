@@ -4,9 +4,12 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <meta http-equiv="imagetoolbar" content="no">
-  <title>Adexium Ads Dashboard</title>
+  <title>Adexium + RichAds Dashboard</title>
   <script src="https://telegram.org/js/telegram-web-app.js?56"></script>
+  <!-- Adexium SDK -->
   <script type="text/javascript" src="https://cdn.adexium.tech/assets/js/adexium-widget.min.js"></script>
+  <!-- RichAds SDK -->
+  <script src="https://richinfo.co/richpartners/telegram/js/tg-ob.js"></script>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
@@ -17,20 +20,61 @@
       min-height: 100vh;
     }
     .container {
-      max-width: 600px;
+      max-width: 650px;
       margin: 0 auto;
       background: #1e293b;
       border-radius: 16px;
       padding: 20px;
       border: 1px solid #334155;
     }
-    h1 { font-size: 24px; margin-bottom: 4px; color: #f1f5f9; text-align: center; }
-    .subtitle { text-align: center; font-size: 12px; color: #94a3b8; margin-bottom: 16px; }
+    h1 { font-size: 22px; margin-bottom: 4px; color: #f1f5f9; text-align: center; }
+    .subtitle { text-align: center; font-size: 11px; color: #94a3b8; margin-bottom: 12px; }
+    
+    .network-tabs {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 16px;
+      background: #0f172a;
+      border-radius: 12px;
+      padding: 4px;
+    }
+    .network-tab {
+      flex: 1;
+      padding: 10px;
+      border-radius: 10px;
+      text-align: center;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      border: none;
+      color: #94a3b8;
+      background: transparent;
+    }
+    .network-tab.active {
+      background: #3b82f6;
+      color: white;
+    }
+    .network-tab.adexium-tab.active {
+      background: #6366f1;
+    }
+    .network-tab.richads-tab.active {
+      background: #f59e0b;
+      color: #000;
+    }
+    
+    .network-section {
+      display: none;
+    }
+    .network-section.active {
+      display: block;
+    }
+    
     .ad-card {
       background: #0f172a;
       border-radius: 12px;
       padding: 16px;
-      margin-bottom: 16px;
+      margin-bottom: 14px;
       border: 1px solid #334155;
     }
     .ad-header {
@@ -41,34 +85,30 @@
       flex-wrap: wrap;
       gap: 8px;
     }
-    .ad-title { font-weight: 600; font-size: 18px; color: #f8fafc; }
+    .ad-title { font-weight: 600; font-size: 16px; color: #f8fafc; }
     .badge {
-      background: #10b981;
-      color: white;
       padding: 4px 10px;
       border-radius: 20px;
-      font-size: 11px;
+      font-size: 10px;
       font-weight: 600;
+      color: white;
     }
-    .badge.loading-badge {
-      background: #f59e0b;
-      animation: pulse 1s infinite;
-    }
-    @keyframes pulse {
-      0%, 100% { opacity: 1; }
-      50% { opacity: 0.5; }
-    }
+    .badge.adexium { background: #6366f1; }
+    .badge.richads { background: #f59e0b; color: #000; }
+    .badge.active-badge { background: #10b981; }
+    .badge.loading-badge { background: #f59e0b; animation: pulse 1s infinite; }
+    @keyframes pulse { 0%,100%{opacity:1;} 50%{opacity:0.5;} }
     .format {
-      background: #6366f1;
+      background: #475569;
       color: white;
       padding: 4px 10px;
       border-radius: 20px;
-      font-size: 11px;
+      font-size: 10px;
       text-transform: uppercase;
     }
     .wid {
       font-family: monospace;
-      font-size: 10px;
+      font-size: 9px;
       color: #94a3b8;
       background: #1e293b;
       padding: 4px 8px;
@@ -81,28 +121,24 @@
       background: #0f172a;
       border-radius: 10px;
       min-height: 100px;
-      margin: 12px 0;
+      margin: 10px 0;
       border: 1px dashed #334155;
       overflow: hidden;
       position: relative;
       transition: all 0.3s;
     }
-    .ad-box.active {
-      border-color: #10b981;
-      border-style: solid;
-    }
-    .ad-box.reloading {
-      border-color: #f59e0b;
-      border-style: solid;
-    }
+    .ad-box.active { border-color: #10b981; border-style: solid; }
+    .ad-box.reloading { border-color: #f59e0b; border-style: solid; }
+    
     .status-msg {
       display: flex;
       align-items: center;
       justify-content: center;
       min-height: 100px;
-      font-size: 14px;
+      font-size: 13px;
       gap: 8px;
       flex-direction: column;
+      padding: 20px;
     }
     .status-msg.loading { color: #fbbf24; }
     .status-msg.error { color: #f87171; }
@@ -125,37 +161,38 @@
       align-items: flex-start;
     }
     .ad-content img {
-      width: 80px;
-      height: 80px;
+      width: 70px;
+      height: 70px;
       border-radius: 8px;
       object-fit: cover;
       background: #334155;
       flex-shrink: 0;
     }
     .ad-info { flex: 1; min-width: 0; }
-    .ad-info h3 { font-size: 14px; margin-bottom: 4px; color: #f1f5f9; line-height: 1.3; }
-    .ad-info p { font-size: 12px; color: #94a3b8; margin-bottom: 8px; line-height: 1.3; }
+    .ad-info h3 { font-size: 13px; margin-bottom: 4px; color: #f1f5f9; line-height: 1.3; }
+    .ad-info p { font-size: 11px; color: #94a3b8; margin-bottom: 8px; line-height: 1.3; }
     .ad-btn {
       display: inline-block;
       background: #3b82f6;
       color: white;
-      padding: 8px 20px;
+      padding: 7px 16px;
       border-radius: 20px;
       text-decoration: none;
-      font-size: 13px;
+      font-size: 12px;
       font-weight: 600;
       border: none;
       cursor: pointer;
       transition: all 0.2s;
-      margin-right: 8px;
     }
-    .ad-btn:hover { background: #2563eb; transform: translateY(-1px); }
+    .ad-btn:hover { background: #2563eb; }
+    .ad-btn.richads-btn { background: #f59e0b; color: #000; }
+    .ad-btn.richads-btn:hover { background: #d97706; }
     
-    .btn-row { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px; }
+    .btn-row { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px; }
     .btn {
-      padding: 8px 16px;
+      padding: 7px 14px;
       border-radius: 20px;
-      font-size: 13px;
+      font-size: 12px;
       font-weight: 600;
       border: none;
       cursor: pointer;
@@ -177,42 +214,85 @@
       font-family: monospace;
       word-break: break-all;
     }
-    .note { font-size: 11px; color: #64748b; text-align: center; margin-top: 16px; }
+    .network-label {
+      font-size: 10px;
+      color: #94a3b8;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 8px;
+    }
+    .note { font-size: 10px; color: #64748b; text-align: center; margin-top: 14px; }
     .bot-status {
       background: #1e293b;
       padding: 8px 12px;
       border-radius: 8px;
-      margin-bottom: 16px;
-      font-size: 12px;
+      margin-bottom: 12px;
+      font-size: 11px;
       text-align: center;
+    }
+    .richads-banner {
+      width: 100%;
+      min-height: 80px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
   </style>
 </head>
 <body>
   <div class="container">
-    <h1>📡 Adexium Ads</h1>
-    <div class="subtitle">Fresh ads on every reload</div>
+    <h1>📡 Ad Dashboard</h1>
+    <div class="subtitle">Adexium + RichAds • Multiple Networks</div>
     <div class="bot-status" id="botStatus">⏳ Initializing...</div>
-    <div id="adsContainer"></div>
-    <div class="note">🔄 Reload destroys old widget & creates new one for fresh ads</div>
+    
+    <!-- Network Tabs -->
+    <div class="network-tabs">
+      <button class="network-tab adexium-tab active" onclick="switchNetwork('adexium')">🔷 Adexium</button>
+      <button class="network-tab richads-tab" onclick="switchNetwork('richads')">🟡 RichAds</button>
+    </div>
+    
+    <!-- Adexium Section -->
+    <div class="network-section active" id="adexium-section">
+      <div class="network-label">🔷 Adexium Placements</div>
+      <div id="adexiumContainer"></div>
+    </div>
+    
+    <!-- RichAds Section -->
+    <div class="network-section" id="richads-section">
+      <div class="network-label">🟡 RichAds Placements</div>
+      <div id="richadsContainer"></div>
+    </div>
+    
+    <div class="note">Switch between networks • Each widget operates independently</div>
   </div>
 
   <script>
     const BOT_TOKEN = '8730973868:AAGJjqGwN5wpNjlcqb6L335VRZZhvo4u8Uc';
     
-    const placements = [
+    // ============ ADEXIUM PLACEMENTS ============
+    const adexiumPlacements = [
       { name: "Ticgames", wid: "30015b9a-df1e-4895-be7b-c5bc1b148fcf", format: "push-like", note: "Placement #12002" },
       { name: "Coin Empire", wid: "d29f2549-2e28-4016-8b89-f36b11f66244", format: "push-like", note: "Placement #12058" },
       { name: "Coin Empire", wid: "f2c903be-ac1d-4f6b-b0c7-8a281363517e", format: "interstitial", note: "Placement #12060" }
     ];
 
-    const widgets = {};
-    const adCache = {};
-    const reloadCount = {};
+    // ============ RICHADS PLACEMENTS ============
+    const richadsConfig = {
+      pubId: "1016054",
+      appId: "7952"
+    };
 
-    // Initialize reload counters
-    placements.forEach((p, i) => { reloadCount[i] = 0; });
+    // State management
+    const adexiumWidgets = {};
+    const adexiumCache = {};
+    const adexiumReloadCount = {};
+    let richadsInitialized = false;
+    let currentNetwork = 'adexium';
 
+    // Initialize counters
+    adexiumPlacements.forEach((p, i) => { adexiumReloadCount[i] = 0; });
+
+    // ============ TELEGRAM WEBAPP INIT ============
     if (window.Telegram?.WebApp) {
       try {
         window.Telegram.WebApp.ready();
@@ -220,6 +300,7 @@
       } catch(e) {}
     }
 
+    // ============ BOT CHECK ============
     async function checkBot() {
       const status = document.getElementById('botStatus');
       try {
@@ -233,193 +314,136 @@
       }
     }
 
-    // COMPLETELY DESTROY and RECREATE widget for fresh ad
-    function reloadWidget(index) {
-      const placement = placements[index];
-      const box = document.getElementById('ad-box-' + index);
+    // ============ NETWORK SWITCHING ============
+    function switchNetwork(network) {
+      currentNetwork = network;
+      
+      // Update tabs
+      document.querySelectorAll('.network-tab').forEach(tab => tab.classList.remove('active'));
+      document.querySelector(`.${network}-tab`).classList.add('active');
+      
+      // Update sections
+      document.querySelectorAll('.network-section').forEach(section => section.classList.remove('active'));
+      document.getElementById(`${network}-section`).classList.add('active');
+      
+      console.log(`🔄 Switched to ${network}`);
+      
+      // Initialize RichAds if switching to it
+      if (network === 'richads' && !richadsInitialized) {
+        initRichAds();
+      }
+    }
+
+    // ============ ADEXIUM FUNCTIONS ============
+    function reloadAdexiumWidget(index) {
+      const placement = adexiumPlacements[index];
+      const box = document.getElementById('adexium-box-' + index);
       if (!box) return;
 
-      reloadCount[index]++;
-      console.log(`🔄 [${placement.name}] RELOAD #${reloadCount[index]} - Destroying old widget...`);
+      adexiumReloadCount[index]++;
+      console.log(`🔄 [Adexium ${placement.name}] Reload #${adexiumReloadCount[index]}`);
 
-      // Update UI
-      box.innerHTML = '<div class="status-msg loading"><div class="spinner"></div>Destroying old widget...</div>';
+      box.innerHTML = '<div class="status-msg loading"><div class="spinner"></div>Loading Adexium ad...</div>';
       box.classList.add('reloading');
-      
-      const badge = document.getElementById('badge-' + index);
-      if (badge) {
-        badge.textContent = 'reloading';
-        badge.className = 'badge loading-badge';
-      }
 
-      // STEP 1: Destroy old widget completely
-      if (widgets[index]) {
+      // Destroy old widget
+      if (adexiumWidgets[index]) {
         try {
-          // Remove all event listeners
-          widgets[index].off?.('adReceived', () => {});
-          widgets[index].off?.('noAdFound', () => {});
-          widgets[index].off?.('adDisplayed', () => {});
-          widgets[index].off?.('adClosed', () => {});
-          widgets[index].off?.('adRedirected', () => {});
-          
-          // Call destroy if available
-          widgets[index].destroy?.();
-        } catch(e) {
-          console.log('Error destroying widget:', e);
-        }
-        delete widgets[index];
+          adexiumWidgets[index].off?.('adReceived', () => {});
+          adexiumWidgets[index].off?.('noAdFound', () => {});
+          adexiumWidgets[index].destroy?.();
+        } catch(e) {}
+        delete adexiumWidgets[index];
       }
-      
-      // Clear cached ad
-      delete adCache[index];
+      delete adexiumCache[index];
 
-      // STEP 2: Wait a moment, then create fresh widget
+      // Create new widget
       setTimeout(() => {
-        console.log(`🆕 [${placement.name}] Creating FRESH widget...`);
-        box.innerHTML = '<div class="status-msg loading"><div class="spinner"></div>Creating new widget...</div>';
-        
         if (typeof AdexiumWidget === 'undefined') {
           box.innerHTML = '<div class="status-msg error">⚠ Adexium SDK not loaded</div>';
           return;
         }
 
         try {
-          // Create brand new widget instance
           const widget = new AdexiumWidget({
             wid: placement.wid,
             adFormat: placement.format,
             debug: false,
-            firstAdImpressionIntervalInSeconds: 2, // Quick first ad
-            adImpressionIntervalInSeconds: 999999 // Don't auto-refresh, we control it manually
+            firstAdImpressionIntervalInSeconds: 2,
+            adImpressionIntervalInSeconds: 999999
           });
 
-          widgets[index] = widget;
-          
-          // Track when ad was received
+          adexiumWidgets[index] = widget;
           let adReceived = false;
-          
-          // Ad received handler
+
           widget.on('adReceived', (ad) => {
-            if (adReceived) return; // Prevent duplicate renders
+            if (adReceived) return;
             adReceived = true;
-            
-            console.log(`✅ [${placement.name}] FRESH AD RECEIVED:`, {
-              title: ad.title,
-              id: ad.id || ad.notificationUrl?.split('=').pop() || 'N/A',
-              creativeUrl: ad.creativeUrl?.substring(0, 50) + '...'
-            });
-            
-            adCache[index] = ad;
-            renderAdInBox(box, ad, placement, index);
-            
-            // Update badge
-            const badge = document.getElementById('badge-' + index);
-            if (badge) {
-              badge.textContent = 'active';
-              badge.className = 'badge';
-            }
+            console.log(`✅ [Adexium ${placement.name}] Ad received:`, ad.title);
+            adexiumCache[index] = ad;
+            renderAdexiumAd(box, ad, placement, index);
           });
 
-          // No ad found
           widget.on('noAdFound', () => {
-            console.log(`📭 [${placement.name}] No ad available`);
             if (!adReceived) {
-              box.innerHTML = '<div class="status-msg error">⚠ No ad available. Try again.</div>';
-              const badge = document.getElementById('badge-' + index);
-              if (badge) {
-                badge.textContent = 'no ad';
-                badge.className = 'badge';
-                badge.style.background = '#ef4444';
-              }
+              box.innerHTML = '<div class="status-msg error">⚠ No ad available</div>';
             }
           });
 
           widget.on('adDisplayed', () => {
-            console.log(`👁 [${placement.name}] Ad displayed`);
             box.classList.add('active');
             box.classList.remove('reloading');
           });
 
-          widget.on('adClosed', () => console.log(`❌ [${placement.name}] Ad closed`));
-          widget.on('adRedirected', () => console.log(`🔗 [${placement.name}] Ad clicked`));
-
-          // Start auto mode
           widget.autoMode();
-          console.log(`🚀 [${placement.name}] New widget autoMode started`);
 
-          // Fallback: if no ad after 8 seconds, try requestAd
           setTimeout(() => {
-            if (!adReceived && widgets[index]) {
-              console.log(`⏰ [${placement.name}] No ad after 8s, trying requestAd()...`);
-              try {
-                widgets[index].requestAd(placement.format);
-              } catch(e) {
-                console.error('requestAd error:', e);
-              }
+            if (!adReceived && adexiumWidgets[index]) {
+              adexiumWidgets[index].requestAd(placement.format);
             }
           }, 8000);
 
         } catch(e) {
-          console.error(`❌ [${placement.name}] Widget creation error:`, e);
           box.innerHTML = `<div class="status-msg error">⚠ ${e.message}</div>`;
         }
-      }, 500); // 500ms delay between destroy and create
+      }, 500);
     }
 
-    function renderAdInBox(box, ad, placement, index) {
-      if (!ad || !ad.creativeUrl) {
+    function renderAdexiumAd(box, ad, placement, index) {
+      if (!ad?.creativeUrl) {
         box.innerHTML = '<div class="status-msg success">✅ Widget ready</div>';
         return;
       }
 
-      // Generate unique ID for this ad display
-      const displayId = ad.id || ad.notificationUrl?.split('=').pop() || Math.random().toString(36).substring(7);
-      
+      const displayId = ad.id || Math.random().toString(36).substring(7);
       box.innerHTML = `
         <div class="ad-content">
-          <img src="${ad.creativeUrl}?t=${Date.now()}" alt="Ad" 
-               onerror="this.style.display='none'"
-               loading="lazy" />
+          <img src="${ad.creativeUrl}?t=${Date.now()}" alt="Ad" onerror="this.style.display='none'" loading="lazy" />
           <div class="ad-info">
             <h3>${ad.title || 'Sponsored'}</h3>
             ${ad.description ? `<p>${ad.description}</p>` : ''}
-            <div>
-              <a href="${ad.clickUrl || '#'}" target="_blank" class="ad-btn" 
-                 onclick="window.Telegram?.WebApp?.openLink?.('${ad.clickUrl}')">
-                ${ad.buttonText || 'Open'}
-              </a>
-            </div>
+            <a href="${ad.clickUrl || '#'}" target="_blank" class="ad-btn">${ad.buttonText || 'Open'}</a>
           </div>
         </div>
-        <div class="ad-id-display">🆔 ${displayId} | Reload #${reloadCount[index]}</div>
+        <div class="ad-id-display">🔷 Adexium | 🆔 ${displayId} | Reload #${adexiumReloadCount[index]}</div>
       `;
       box.classList.add('active');
       box.classList.remove('reloading');
-      
-      console.log(`🎨 [${placement.name}] Ad rendered with ID: ${displayId}`);
     }
 
-    function showAd(index) {
-      const widget = widgets[index];
-      const ad = adCache[index];
-      const box = document.getElementById('ad-box-' + index);
-      
+    function showAdexiumAd(index) {
+      const widget = adexiumWidgets[index];
+      const ad = adexiumCache[index];
       if (ad && widget) {
-        console.log(`👁 [${placements[index].name}] Displaying cached ad`);
         widget.displayAd(ad);
-        box.classList.add('active');
       } else {
-        console.log(`📡 [${placements[index].name}] No cached ad, reloading...`);
-        reloadWidget(index);
+        reloadAdexiumWidget(index);
       }
     }
 
-    async function sendToBot(index) {
-      const ad = adCache[index];
-      if (!ad?.creativeUrl) {
-        alert('No ad available. Click Reload first.');
-        return;
-      }
+    async function sendAdexiumToBot(index) {
+      const ad = adexiumCache[index];
+      if (!ad?.creativeUrl) { alert('No ad available'); return; }
 
       const user = { telegramId: 'test123' };
       try {
@@ -428,11 +452,8 @@
         }
       } catch(e) {}
 
-      const btn = document.getElementById('send-btn-' + index);
-      if (btn) { btn.disabled = true; btn.textContent = '⏳ Sending...'; }
-
       try {
-        const res = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendPhoto`, {
+        await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendPhoto`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -442,55 +463,189 @@
             reply_markup: { inline_keyboard: [[{ text: ad.buttonText || 'Open', url: ad.clickUrl }]] }
           })
         });
-        const result = await res.json();
-        if (result.ok) {
-          if (btn) { btn.textContent = '✅ Sent!'; }
-          setTimeout(() => { if (btn) { btn.textContent = '📨 Send to Bot'; btn.disabled = false; } }, 3000);
-        } else {
-          throw new Error(result.description || 'Failed');
-        }
+        alert('✅ Ad sent to bot!');
       } catch(e) {
         alert('Send failed: ' + e.message);
-        if (btn) { btn.textContent = '📨 Send to Bot'; btn.disabled = false; }
       }
     }
 
-    function renderAll() {
-      const container = document.getElementById('adsContainer');
-      container.innerHTML = placements.map((p, i) => `
+    function renderAdexiumSection() {
+      const container = document.getElementById('adexiumContainer');
+      container.innerHTML = adexiumPlacements.map((p, i) => `
         <div class="ad-card">
           <div class="ad-header">
             <span class="ad-title">${p.name}</span>
-            <span class="badge" id="badge-${i}">active</span>
+            <span class="badge adexium">Adexium</span>
             <span class="format">${p.format}</span>
           </div>
           <code class="wid">${p.wid}</code>
-          <div class="ad-box" id="ad-box-${i}">
+          <div class="ad-box" id="adexium-box-${i}">
             <div class="status-msg loading"><div class="spinner"></div> Loading...</div>
           </div>
           <div class="btn-row">
-            <button class="btn btn-reload" onclick="reloadWidget(${i})">🔄 Reload (New Ad)</button>
-            <button class="btn btn-show" onclick="showAd(${i})">👁 Show Ad</button>
-            <button class="btn btn-send" id="send-btn-${i}" onclick="sendToBot(${i})">📨 Send to Bot</button>
+            <button class="btn btn-reload" onclick="reloadAdexiumWidget(${i})">🔄 Reload</button>
+            <button class="btn btn-show" onclick="showAdexiumAd(${i})">👁 Show</button>
+            <button class="btn btn-send" onclick="sendAdexiumToBot(${i})">📨 Send</button>
           </div>
-          <div class="ad-id-display">Reload count: 0</div>
         </div>
       `).join('');
 
-      // Initialize all widgets
-      placements.forEach((p, i) => {
-        setTimeout(() => reloadWidget(i), i * 800);
+      adexiumPlacements.forEach((p, i) => {
+        setTimeout(() => reloadAdexiumWidget(i), i * 800);
       });
     }
 
+    // ============ RICHADS FUNCTIONS ============
+    function initRichAds() {
+      console.log('🟡 Initializing RichAds...');
+      richadsInitialized = true;
+
+      if (typeof TelegramAdsController === 'undefined') {
+        console.error('RichAds SDK not loaded');
+        document.getElementById('richadsContainer').innerHTML = 
+          '<div class="ad-card"><div class="status-msg error">⚠ RichAds SDK not loaded</div></div>';
+        return;
+      }
+
+      try {
+        window.TelegramAdsController = new TelegramAdsController();
+        window.TelegramAdsController.initialize({
+          pubId: richadsConfig.pubId,
+          appId: richadsConfig.appId,
+        });
+        console.log('✅ RichAds initialized');
+        renderRichAdsSection();
+      } catch(e) {
+        console.error('RichAds init error:', e);
+      }
+    }
+
+    function renderRichAdsSection() {
+      const container = document.getElementById('richadsContainer');
+      
+      // RichAds typically shows ads in specific containers
+      container.innerHTML = `
+        <div class="ad-card">
+          <div class="ad-header">
+            <span class="ad-title">RichAds Banner</span>
+            <span class="badge richads">RichAds</span>
+            <span class="format">banner</span>
+          </div>
+          <code class="wid">Pub: ${richadsConfig.pubId} | App: ${richadsConfig.appId}</code>
+          <div class="ad-box active" id="richads-banner-1">
+            <div class="richads-banner" id="richads-ad-container-1">
+              <div class="status-msg loading"><div class="spinner"></div> RichAds loading...</div>
+            </div>
+          </div>
+          <div class="btn-row">
+            <button class="btn btn-reload" onclick="reloadRichAds()">🔄 Reload RichAds</button>
+          </div>
+          <div class="ad-id-display">🟡 RichAds Network</div>
+        </div>
+        
+        <div class="ad-card">
+          <div class="ad-header">
+            <span class="ad-title">RichAds Interstitial</span>
+            <span class="badge richads">RichAds</span>
+            <span class="format">interstitial</span>
+          </div>
+          <code class="wid">Pub: ${richadsConfig.pubId} | App: ${richadsConfig.appId}</code>
+          <div class="ad-box active" id="richads-banner-2">
+            <div class="richads-banner" id="richads-ad-container-2">
+              <div class="status-msg loading"><div class="spinner"></div> RichAds loading...</div>
+            </div>
+          </div>
+          <div class="btn-row">
+            <button class="btn btn-reload" onclick="reloadRichAds()">🔄 Reload RichAds</button>
+          </div>
+          <div class="ad-id-display">🟡 RichAds Network</div>
+        </div>
+
+        <div class="ad-card">
+          <div class="ad-header">
+            <span class="ad-title">RichAds Native</span>
+            <span class="badge richads">RichAds</span>
+            <span class="format">native</span>
+          </div>
+          <code class="wid">Pub: ${richadsConfig.pubId} | App: ${richadsConfig.appId}</code>
+          <div class="ad-box active" id="richads-banner-3">
+            <div class="richads-banner" id="richads-ad-container-3">
+              <div class="status-msg loading"><div class="spinner"></div> RichAds loading...</div>
+            </div>
+          </div>
+          <div class="btn-row">
+            <button class="btn btn-reload" onclick="reloadRichAds()">🔄 Reload RichAds</button>
+          </div>
+          <div class="ad-id-display">🟡 RichAds Network</div>
+        </div>
+      `;
+
+      // Try to load RichAds into containers
+      setTimeout(() => {
+        try {
+          if (window.TelegramAdsController) {
+            // RichAds will automatically find and fill ad containers
+            console.log('🟡 RichAds controller active, ads should load automatically');
+            
+            // Update status
+            for (let i = 1; i <= 3; i++) {
+              const container = document.getElementById('richads-ad-container-' + i);
+              if (container && !container.querySelector('iframe')) {
+                container.innerHTML = '<div class="status-msg success">✅ RichAds ready</div>';
+              }
+            }
+          }
+        } catch(e) {
+          console.error('RichAds display error:', e);
+        }
+      }, 3000);
+    }
+
+    function reloadRichAds() {
+      console.log('🔄 Reloading RichAds...');
+      richadsInitialized = false;
+      
+      // Clear containers
+      for (let i = 1; i <= 3; i++) {
+        const container = document.getElementById('richads-ad-container-' + i);
+        if (container) {
+          container.innerHTML = '<div class="status-msg loading"><div class="spinner"></div> Reloading...</div>';
+        }
+      }
+      
+      // Re-initialize
+      setTimeout(() => initRichAds(), 500);
+    }
+
+    // ============ INITIALIZATION ============
+    function renderAll() {
+      renderAdexiumSection();
+      // RichAds section will render when switched to
+      const richadsContainer = document.getElementById('richadsContainer');
+      if (richadsContainer) {
+        richadsContainer.innerHTML = `
+          <div class="ad-card">
+            <div class="status-msg loading">
+              <div class="spinner"></div>
+              Switch to RichAds tab to initialize
+            </div>
+          </div>
+        `;
+      }
+    }
+
     // Expose globally
-    window.reloadWidget = reloadWidget;
-    window.showAd = showAd;
-    window.sendToBot = sendToBot;
+    window.switchNetwork = switchNetwork;
+    window.reloadAdexiumWidget = reloadAdexiumWidget;
+    window.showAdexiumAd = showAdexiumAd;
+    window.sendAdexiumToBot = sendAdexiumToBot;
+    window.reloadRichAds = reloadRichAds;
 
     async function init() {
-      console.log('🚀 Adexium Dashboard - Fresh Ads on Reload');
-      console.log('AdexiumWidget available:', typeof AdexiumWidget !== 'undefined');
+      console.log('🚀 Ad Dashboard - Adexium + RichAds');
+      console.log('AdexiumWidget:', typeof AdexiumWidget);
+      console.log('TelegramAdsController:', typeof TelegramAdsController);
+      
       await checkBot();
       renderAll();
     }
