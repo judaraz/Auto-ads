@@ -216,6 +216,12 @@
       margin-left: 8px;
       font-family: monospace;
     }
+    .impression-count {
+      font-size: 10px;
+      color: #10b981;
+      margin-left: 8px;
+      font-family: monospace;
+    }
     .debug-info {
       font-size: 10px;
       color: #64748b;
@@ -258,25 +264,36 @@
 <body>
   <div class="container">
     <h1>📡 Adexium Ads</h1>
-    <div class="subtitle">Auto-reload ads every 20 seconds</div>
+    <div class="subtitle">Independent Widgets • Real Ads • Auto-Reload 20s</div>
     <div class="bot-status" id="botStatus">⏳ Initializing...</div>
     <div id="adsContainer"></div>
-    <div class="note">Click Start to begin auto-reload • Ads overlap previous ones</div>
+    <div class="note">Each widget operates independently • Click Start to begin</div>
   </div>
 
   <script>
     const BOT_TOKEN = '8730973868:AAGJjqGwN5wpNjlcqb6L335VRZZhvo4u8Uc';
     
     const placements = [
-      { name: "Ticgames", wid: "30015b9a-df1e-4895-be7b-c5bc1b148fcf", format: "push-like", note: "Integration working" },
-      { name: "Coin Empire", wid: "d29f2549-2e28-4016-8b89-f36b11f66244", format: "push-like", note: "Integration working" },
-      { name: "Coin Empire", wid: "f2c903be-ac1d-4f6b-b0c7-8a281363517e", format: "interstitial", note: "Waiting for first request" }
+      { name: "Ticgames", wid: "30015b9a-df1e-4895-be7b-c5bc1b148fcf", format: "push-like", note: "Placement #12002" },
+      { name: "Coin Empire", wid: "d29f2549-2e28-4016-8b89-f36b11f66244", format: "push-like", note: "Placement #12058" },
+      { name: "Coin Empire", wid: "f2c903be-ac1d-4f6b-b0c7-8a281363517e", format: "interstitial", note: "Placement #12060" }
     ];
 
-    const widgets = {};
-    const adCache = {};
-    const intervals = {};
-    const isRunning = {};
+    // Store widget instances and state separately for each placement
+    const widgetState = {};
+
+    // Initialize state for each placement
+    placements.forEach((p, i) => {
+      widgetState[i] = {
+        widget: null,
+        adCache: null,
+        interval: null,
+        countdownInterval: null,
+        isRunning: false,
+        impressionCount: 0,
+        widgetId: p.wid
+      };
+    });
 
     if (window.Telegram?.WebApp) {
       try {
@@ -306,7 +323,9 @@
       }
     }
 
+    // Create independent widget for a placement
     function createWidget(placement, index) {
+      const state = widgetState[index];
       const box = document.getElementById('ad-box-' + index);
       if (!box) return;
       
@@ -317,80 +336,83 @@
       }
 
       try {
-        // Destroy existing widget if any
-        if (widgets[index]) {
-          try { widgets[index].destroy?.(); } catch(e) {}
-          delete widgets[index];
+        // Destroy existing widget
+        if (state.widget) {
+          try { state.widget.destroy?.(); } catch(e) {}
+          state.widget = null;
         }
 
         box.innerHTML = '<div class="status-msg loading"><div class="spinner"></div>Creating widget...</div>';
 
-        // Create widget with debug mode to ensure ads show
+        // Create widget WITHOUT debug mode for real ads
         const widget = new AdexiumWidget({
           wid: placement.wid,
           adFormat: placement.format,
-          debug: true, // Enable debug mode to get test ads
-          firstAdImpressionIntervalInSeconds: 3,
+          debug: false, // REAL ads, not test ads
+          firstAdImpressionIntervalInSeconds: 5,
           adImpressionIntervalInSeconds: 20
         });
 
-        widgets[index] = widget;
-        console.log(`✅ Widget created for ${placement.name} (debug: true)`);
+        state.widget = widget;
+        console.log(`✅ Widget ${index} created for ${placement.name} (${placement.wid})`);
 
-        // Listen for ad received
+        // Ad received event
         widget.on('adReceived', (ad) => {
-          console.log(`📢 Ad received for ${placement.name}:`, ad);
-          adCache[index] = ad;
+          console.log(`📢 [Widget ${index}] Ad received:`, ad);
+          state.adCache = ad;
           
-          if (isRunning[index]) {
+          if (state.isRunning) {
             displayAdOverlay(box, ad, placement, index);
           } else {
             renderAdInBox(box, ad, placement, index);
           }
         });
 
-        // Listen for no ad found
+        // No ad found
         widget.on('noAdFound', () => {
-          console.log(`📭 No ad found for ${placement.name}`);
-          if (!isRunning[index]) {
+          console.log(`📭 [Widget ${index}] No ad available`);
+          if (!state.isRunning) {
             box.innerHTML = '<div class="status-msg success">✅ Widget ready - waiting for ad...</div>';
             box.classList.add('active');
           }
         });
 
+        // Ad displayed - count impression
         widget.on('adDisplayed', () => {
-          console.log(`👁 Ad displayed for ${placement.name}`);
+          state.impressionCount++;
+          console.log(`👁 [Widget ${index}] Ad displayed - Impression #${state.impressionCount}`);
           box.classList.add('active');
+          updateImpressionCount(index);
         });
 
+        // Ad closed
         widget.on('adClosed', () => {
-          console.log(`❌ Ad closed for ${placement.name}`);
+          console.log(`❌ [Widget ${index}] Ad closed`);
         });
 
+        // Ad clicked
         widget.on('adRedirected', () => {
-          console.log(`🔗 Ad clicked for ${placement.name}`);
+          console.log(`🔗 [Widget ${index}] Ad clicked`);
         });
 
-        // Start autoMode immediately so ads show
-        widget.autoMode();
-        console.log(`🚀 AutoMode started for ${placement.name}`);
+        // Ad playback completed
+        widget.on('adPlaybackCompleted', () => {
+          console.log(`✅ [Widget ${index}] Ad playback completed`);
+        });
 
-        // After 3 seconds, check if ad loaded
-        setTimeout(() => {
-          const hasAd = box.querySelector('img') || box.querySelector('iframe') || box.querySelector('.ad-content');
-          if (!hasAd && !isRunning[index]) {
-            box.innerHTML = '<div class="status-msg success">✅ Widget active - click Start</div>';
-            box.classList.add('active');
-          }
-        }, 3000);
+        // Start autoMode for this widget
+        widget.autoMode();
+        console.log(`🚀 [Widget ${index}] AutoMode started`);
 
       } catch(e) {
-        console.error(`❌ Widget error for ${placement.name}:`, e);
+        console.error(`❌ [Widget ${index}] Error:`, e);
         box.innerHTML = `<div class="status-msg error">⚠ Error: ${e.message}</div>`;
       }
     }
 
     function displayAdOverlay(box, ad, placement, index) {
+      const state = widgetState[index];
+      
       // Remove previous overlay
       const existingOverlay = box.querySelector('.overlay-ad');
       if (existingOverlay) {
@@ -412,7 +434,7 @@
               ${ad.buttonText || 'Open'}
             </a>
             <button class="btn btn-start running" style="margin-top:8px;padding:4px 12px;font-size:11px;background:#ef4444;" 
-                    onclick="this.closest('.overlay-ad').remove()">✕ Close</button>
+                    onclick="this.closest('.overlay-ad').remove(); console.log('Overlay closed manually')">✕ Close</button>
           </div>
         </div>
       `;
@@ -420,10 +442,16 @@
       box.appendChild(overlay);
       box.classList.add('active', 'running');
       
+      // Track impression
+      state.impressionCount++;
+      updateImpressionCount(index);
+      console.log(`👁 [Widget ${index}] Overlay ad displayed - Impression #${state.impressionCount}`);
+      
       // Auto-remove overlay after 18 seconds
       setTimeout(() => {
         if (overlay.parentElement) {
           overlay.remove();
+          console.log(`⏰ [Widget ${index}] Overlay auto-removed after 18s`);
         }
       }, 18000);
     }
@@ -448,20 +476,21 @@
             </a>
           </div>
         </div>
-        <div class="debug-info">Ad ID: ${ad.id || 'N/A'} | Format: ${ad.adFormat || placement.format}</div>
+        <div class="debug-info">Format: ${ad.adFormat || placement.format}</div>
       `;
       box.classList.add('active');
     }
 
+    // START independent auto-reload for a widget
     function startAutoReload(index) {
-      if (isRunning[index]) return;
+      const state = widgetState[index];
+      if (state.isRunning) return;
 
-      isRunning[index] = true;
+      state.isRunning = true;
       const placement = placements[index];
       const box = document.getElementById('ad-box-' + index);
-      const widget = widgets[index];
 
-      console.log(`▶ Starting auto-reload for ${placement.name}`);
+      console.log(`▶ [Widget ${index}] Starting auto-reload for ${placement.name}`);
 
       updateButtonState(index, true);
       updateBadgeState(index, true);
@@ -470,33 +499,33 @@
         box.classList.add('running');
         const hasOverlay = box.querySelector('.overlay-ad');
         if (!hasOverlay) {
-          box.innerHTML = '<div class="status-msg loading"><div class="spinner"></div>Starting auto-reload every 20s...</div>';
+          box.innerHTML = '<div class="status-msg loading"><div class="spinner"></div>Loading real ad...</div>';
         }
       }
 
       // Request first ad immediately
-      if (widget) {
+      if (state.widget) {
         try {
-          widget.requestAd(placement.format);
-          console.log(`📡 First ad requested for ${placement.name}`);
+          state.widget.requestAd(placement.format);
+          console.log(`📡 [Widget ${index}] First ad requested`);
         } catch(e) {
-          console.error(`Error requesting ad:`, e);
+          console.error(`[Widget ${index}] Error requesting ad:`, e);
         }
       }
 
-      // Clear existing interval if any
-      if (intervals[index]) {
-        clearInterval(intervals[index]);
+      // Clear existing interval
+      if (state.interval) {
+        clearInterval(state.interval);
       }
 
-      // Set interval to reload every 20 seconds
-      intervals[index] = setInterval(() => {
-        console.log(`⏰ Auto-reload triggered for ${placement.name}`);
-        if (widget && isRunning[index]) {
+      // Set independent interval for this widget - 20 seconds
+      state.interval = setInterval(() => {
+        if (state.widget && state.isRunning) {
           try {
-            widget.requestAd(placement.format);
+            state.widget.requestAd(placement.format);
+            console.log(`⏰ [Widget ${index}] Auto-reload triggered (20s)`);
           } catch(e) {
-            console.error(`Error in auto-reload:`, e);
+            console.error(`[Widget ${index}] Auto-reload error:`, e);
           }
         }
       }, 20000);
@@ -504,24 +533,25 @@
       updateTimer(index);
     }
 
+    // STOP independent auto-reload for a widget
     function stopAutoReload(index) {
-      if (!isRunning[index]) return;
+      const state = widgetState[index];
+      if (!state.isRunning) return;
 
-      isRunning[index] = false;
+      state.isRunning = false;
       const placement = placements[index];
       const box = document.getElementById('ad-box-' + index);
 
-      console.log(`⏹ Stopping auto-reload for ${placement.name}`);
+      console.log(`⏹ [Widget ${index}] Stopping auto-reload for ${placement.name}`);
 
-      if (intervals[index]) {
-        clearInterval(intervals[index]);
-        delete intervals[index];
+      // Clear intervals
+      if (state.interval) {
+        clearInterval(state.interval);
+        state.interval = null;
       }
-
-      // Clear countdown
-      if (intervals['countdown_' + index]) {
-        clearInterval(intervals['countdown_' + index]);
-        delete intervals['countdown_' + index];
+      if (state.countdownInterval) {
+        clearInterval(state.countdownInterval);
+        state.countdownInterval = null;
       }
 
       updateButtonState(index, false);
@@ -531,9 +561,6 @@
         box.classList.remove('running');
         const overlays = box.querySelectorAll('.overlay-ad');
         overlays.forEach(o => o.remove());
-        
-        const timer = box.querySelector('.timer-indicator');
-        if (timer) timer.remove();
       }
     }
 
@@ -563,11 +590,20 @@
       }
     }
 
-    function updateTimer(index) {
-      if (!isRunning[index]) return;
+    function updateImpressionCount(index) {
+      const state = widgetState[index];
+      const countEl = document.getElementById('imp-count-' + index);
+      if (countEl) {
+        countEl.textContent = `👁 ${state.impressionCount} impressions`;
+      }
+    }
 
-      if (intervals['countdown_' + index]) {
-        clearInterval(intervals['countdown_' + index]);
+    function updateTimer(index) {
+      const state = widgetState[index];
+      if (!state.isRunning) return;
+
+      if (state.countdownInterval) {
+        clearInterval(state.countdownInterval);
       }
 
       let seconds = 20;
@@ -576,9 +612,9 @@
         timerEl.textContent = `Next ad in ${seconds}s`;
       }
 
-      intervals['countdown_' + index] = setInterval(() => {
-        if (!isRunning[index]) {
-          clearInterval(intervals['countdown_' + index]);
+      state.countdownInterval = setInterval(() => {
+        if (!state.isRunning) {
+          clearInterval(state.countdownInterval);
           return;
         }
         
@@ -594,7 +630,9 @@
     }
 
     async function sendToBot(index) {
-      const ad = adCache[index];
+      const state = widgetState[index];
+      const ad = state.adCache;
+      
       if (!ad?.creativeUrl) {
         alert('No ad available. Start auto-reload first.');
         return;
@@ -640,7 +678,8 @@
     }
 
     function toggleAutoReload(index) {
-      if (isRunning[index]) {
+      const state = widgetState[index];
+      if (state.isRunning) {
         stopAutoReload(index);
       } else {
         startAutoReload(index);
@@ -665,25 +704,28 @@
             <button class="btn btn-start" id="start-btn-${i}" onclick="toggleAutoReload(${i})">▶ Start</button>
             <button class="btn btn-send" id="send-btn-${i}" onclick="sendToBot(${i})">📨 Send to Bot</button>
             <span class="timer-indicator" id="timer-${i}"></span>
+            <span class="impression-count" id="imp-count-${i}">👁 0 impressions</span>
           </div>
-          <div class="debug-info">${p.note}</div>
+          <div class="debug-info">${p.note} | Real ads only</div>
         </div>
       `).join('');
 
-      // Initialize widgets with autoMode
+      // Initialize each widget independently
       placements.forEach((p, i) => {
-        setTimeout(() => createWidget(p, i), i * 800);
+        setTimeout(() => createWidget(p, i), i * 1000);
       });
     }
 
+    // Expose functions globally
     window.toggleAutoReload = toggleAutoReload;
     window.startAutoReload = startAutoReload;
     window.stopAutoReload = stopAutoReload;
     window.sendToBot = sendToBot;
 
     async function init() {
-      console.log('🚀 Adexium Dashboard starting...');
+      console.log('🚀 Adexium Dashboard - Independent Widgets');
       console.log('AdexiumWidget available:', typeof AdexiumWidget !== 'undefined');
+      console.log('Widgets will operate independently with REAL ads');
       
       await checkBot();
       renderAll();
@@ -705,7 +747,7 @@
           callback();
         } else if (attempts >= 50) {
           clearInterval(interval);
-          console.error('❌ AdexiumWidget SDK failed to load after 25 seconds');
+          console.error('❌ AdexiumWidget SDK failed to load');
           callback();
         }
         attempts++;
@@ -716,9 +758,12 @@
       waitForSDK(init);
     });
 
+    // Cleanup on page unload
     window.addEventListener('beforeunload', () => {
-      Object.keys(intervals).forEach(key => {
-        clearInterval(intervals[key]);
+      placements.forEach((p, i) => {
+        const state = widgetState[i];
+        if (state.interval) clearInterval(state.interval);
+        if (state.countdownInterval) clearInterval(state.countdownInterval);
       });
     });
   </script>
